@@ -1,0 +1,16 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "repobase",
+    },
+    "packages/engine": {
+      "name": "engine",
+      "version": "1.0.0",
+    },
+  },
+  "packages": {
+    "engine": ["engine@workspace:packages/engine"],
+  }
+}

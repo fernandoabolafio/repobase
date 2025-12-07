@@ -1,0 +1,22 @@
+{
+  "name": "@repobase/tui",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/main.tsx",
+  "types": "src/main.tsx",
+  "scripts": {
+    "start": "bun run src/main.tsx"
+  },
+  "dependencies": {
+    "@repobase/engine": "workspace:*",
+    "@opentui/core": "^0.1.0",
+    "@opentui/react": "^0.1.0",
+    "react": "^19.0.0",
+    "effect": "^3.19.9",
+    "@effect/platform": "^0.93.6",
+    "@effect/platform-node": "^0.103.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0"
+  }
+}

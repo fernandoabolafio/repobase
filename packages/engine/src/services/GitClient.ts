@@ -52,8 +52,20 @@ const toGitError =
 export const make = Effect.gen(function* () {
   const executor = yield* CommandExecutor.CommandExecutor
 
-  const runCommand = (cmd: Command.Command) =>
-    Effect.provideService(Command.exitCode(cmd), CommandExecutor.CommandExecutor, executor)
+  // Run command and check exit code - fail on non-zero
+  const runCommand = (cmd: Command.Command, commandName: string) =>
+    Effect.provideService(Command.exitCode(cmd), CommandExecutor.CommandExecutor, executor).pipe(
+      Effect.flatMap((exitCode) =>
+        exitCode === 0
+          ? Effect.void
+          : Effect.fail(
+              new GitError({
+                command: commandName,
+                message: `Command exited with code ${exitCode}`
+              })
+            )
+      )
+    )
 
   const runString = (cmd: Command.Command) =>
     Effect.provideService(Command.string(cmd), CommandExecutor.CommandExecutor, executor)
@@ -63,16 +75,16 @@ export const make = Effect.gen(function* () {
 
   return GitClient.of({
     clone: (url, path) =>
-      runCommand(Command.make("git", "clone", "--depth", "1", url, path)).pipe(
-        Effect.asVoid,
-        Effect.mapError(toGitError("clone"))
-      ),
+      runCommand(
+        Command.make("git", "clone", "--depth", "1", url, path),
+        "clone"
+      ).pipe(Effect.mapError(toGitError("clone"))),
 
     fetch: (path) =>
-      runCommand(Command.make("git", "-C", path, "fetch", "origin")).pipe(
-        Effect.asVoid,
-        Effect.mapError(toGitError("fetch"))
-      ),
+      runCommand(
+        Command.make("git", "-C", path, "fetch", "origin"),
+        "fetch"
+      ).pipe(Effect.mapError(toGitError("fetch"))),
 
     getCurrentCommit: (path) =>
       runString(Command.make("git", "-C", path, "rev-parse", "HEAD")).pipe(
@@ -87,16 +99,16 @@ export const make = Effect.gen(function* () {
       ),
 
     resetHard: (path, ref) =>
-      runCommand(Command.make("git", "-C", path, "reset", "--hard", ref)).pipe(
-        Effect.asVoid,
-        Effect.mapError(toGitError("reset"))
-      ),
+      runCommand(
+        Command.make("git", "-C", path, "reset", "--hard", ref),
+        "reset"
+      ).pipe(Effect.mapError(toGitError("reset"))),
 
     checkout: (path, ref) =>
-      runCommand(Command.make("git", "-C", path, "checkout", ref)).pipe(
-        Effect.asVoid,
-        Effect.mapError(toGitError("checkout"))
-      ),
+      runCommand(
+        Command.make("git", "-C", path, "checkout", ref),
+        "checkout"
+      ).pipe(Effect.mapError(toGitError("checkout"))),
 
     diffNameStatus: (path, fromCommit, toCommit) =>
       runLines(

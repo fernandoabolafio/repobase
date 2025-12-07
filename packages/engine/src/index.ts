@@ -27,10 +27,17 @@ export {
 // Services
 export { GitClient, type GitClientService, type FileChange } from "./services/GitClient.js"
 export { RepoStore, type RepoStoreService } from "./services/RepoStore.js"
+export {
+  RepobaseEngine,
+  type RepobaseEngineService,
+  type AddRepoOptions,
+  type SyncResult
+} from "./services/RepobaseEngine.js"
 
 // Layers
 export { layer as GitClientLayer } from "./services/GitClient.js"
 export { layer as RepoStoreLayer } from "./services/RepoStore.js"
+export { layer as RepobaseEngineLayer } from "./services/RepobaseEngine.js"
 
 // Layer composition for Node.js
 import { Layer } from "effect"
@@ -38,6 +45,7 @@ import { FileSystem } from "@effect/platform"
 import { NodeFileSystem, NodeCommandExecutor } from "@effect/platform-node"
 import { layer as GitClientLayer } from "./services/GitClient.js"
 import { layer as RepoStoreLayer } from "./services/RepoStore.js"
+import { layer as RepobaseEngineLayer } from "./services/RepobaseEngine.js"
 
 /**
  * Platform dependencies for Node.js
@@ -58,6 +66,15 @@ export const GitClientLive = GitClientLayer.pipe(Layer.provide(PlatformLive))
 export const RepoStoreLive = RepoStoreLayer.pipe(Layer.provide(PlatformLive))
 
 /**
- * All Phase 1 services combined
+ * RepobaseEngine layer with all dependencies
+ * Composes all required layers and provides the platform at the end
  */
-export const Phase1Live = Layer.mergeAll(GitClientLive, RepoStoreLive)
+export const RepobaseEngineLive = RepobaseEngineLayer.pipe(
+  Layer.provide(
+    Layer.mergeAll(
+      GitClientLayer,
+      RepoStoreLayer,
+      PlatformLive
+    )
+  )
+)

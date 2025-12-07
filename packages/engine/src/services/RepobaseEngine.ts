@@ -93,7 +93,11 @@ export const make = Effect.gen(function* () {
       }
 
       // Ensure repos directory exists
-      yield* fs.makeDirectory(reposDir, { recursive: true })
+      yield* fs.makeDirectory(reposDir, { recursive: true }).pipe(
+        Effect.mapError(
+          (e) => new StoreError({ operation: "makeDirectory", message: e.message })
+        )
+      )
 
       // Clone the repository
       yield* Effect.log(`Cloning ${url}...`)
@@ -140,7 +144,7 @@ export const make = Effect.gen(function* () {
     })
 
   const listRepos: RepobaseEngineService["listRepos"] = () =>
-    store.load().pipe(Effect.map((d) => d.repos))
+    store.load().pipe(Effect.map((d) => [...d.repos]))
 
   const getRepo: RepobaseEngineService["getRepo"] = (id) => store.getRepo(id)
 

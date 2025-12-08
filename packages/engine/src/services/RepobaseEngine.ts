@@ -1,5 +1,5 @@
 import { FileSystem } from "@effect/platform"
-import { Context, Effect, Layer, Option, SubscriptionRef } from "effect"
+import { Context, Effect, Fiber, Layer, Option, Stream, SubscriptionRef } from "effect"
 import {
   GitError,
   IndexError,
@@ -19,9 +19,11 @@ import { RepoStore } from "./RepoStore.js"
 import {
   Indexer,
   type IndexSummary,
+  type IndexingProgress,
   type SearchMode,
   type SearchOptions,
-  type SearchResult
+  type SearchResult,
+  initialIndexingProgress
 } from "./Indexer.js"
 import * as os from "os"
 
@@ -36,6 +38,7 @@ export interface AddRepoProgress {
   readonly message: string
   readonly filesIndexed?: number
   readonly totalFiles?: number
+  readonly currentFile?: string
 }
 
 /**
@@ -45,6 +48,15 @@ export const initialProgress: AddRepoProgress = {
   stage: "cloning",
   progress: 0,
   message: "Starting..."
+}
+
+/**
+ * Calculate overall progress from indexing progress (50-95% range)
+ */
+const calcIndexingProgress = (indexing: IndexingProgress): number => {
+  if (indexing.totalFiles === 0) return 50
+  const pct = (indexing.filesProcessed / indexing.totalFiles) * 45 // 45% range for indexing
+  return Math.min(95, 50 + pct)
 }
 
 /**
@@ -185,21 +197,55 @@ export const make = Effect.gen(function* () {
       yield* updateProgress({ 
         stage: "indexing", 
         progress: 50, 
-        message: `Indexing ${id}...` 
+        message: `Indexing ${id}...`,
+        filesIndexed: 0,
+        totalFiles: 0
       })
 
-      // Index the repository
+      // Create indexing progress ref for granular updates
+      const indexingProgressRef = yield* SubscriptionRef.make<IndexingProgress>(initialIndexingProgress)
+
+      // Subscribe to indexing progress changes and forward them
+      const forwarderFiber = yield* Effect.fork(
+        Stream.runForEach(indexingProgressRef.changes, (indexingState) => 
+          Effect.gen(function* () {
+            if (!progressRef) return
+            
+            const overallProgress = calcIndexingProgress(indexingState)
+            const phaseMessage = indexingState.phase === "scanning" 
+              ? "Scanning files..."
+              : indexingState.phase === "finalizing"
+                ? "Finalizing index..."
+                : `Indexing: ${indexingState.currentFile ?? "..."}`
+            
+            yield* SubscriptionRef.update(progressRef, (prev) => ({
+              ...prev,
+              progress: overallProgress,
+              message: phaseMessage,
+              filesIndexed: indexingState.filesProcessed,
+              totalFiles: indexingState.totalFiles,
+              currentFile: indexingState.currentFile
+            }))
+          })
+        ).pipe(Effect.catchAll(() => Effect.void))
+      )
+
+      // Index the repository with progress tracking
       yield* Effect.log(`Indexing ${id}...`)
-      const indexResult = yield* indexer.indexRepo(id, localPath)
+      const indexResult = yield* indexer.indexRepo(id, localPath, { progressRef: indexingProgressRef })
       yield* Effect.log(
         `Indexed ${indexResult.filesIndexed} files in ${indexResult.durationMs}ms`
       )
+
+      // Clean up forwarder
+      yield* Fiber.interrupt(forwarderFiber)
 
       yield* updateProgress({ 
         stage: "complete", 
         progress: 100, 
         message: `Added ${id}`,
-        filesIndexed: indexResult.filesIndexed
+        filesIndexed: indexResult.filesIndexed,
+        totalFiles: indexResult.filesIndexed
       })
 
       yield* Effect.log(`Added repository: ${id}`)

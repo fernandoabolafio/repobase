@@ -36,7 +36,9 @@ export {
   type SearchResult,
   type SearchOptions,
   type SearchMode,
-  type IndexOptions
+  type IndexOptions,
+  type IndexingProgress,
+  initialIndexingProgress
 } from "./services/Indexer.js"
 export {
   RepobaseEngine,

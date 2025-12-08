@@ -1,5 +1,6 @@
 import { TextAttributes } from "@opentui/core"
 import type { AddRepoProgress } from "@repobase/engine"
+import { colors } from "../theme/index.js"
 
 interface ProgressModalProps {
   progress: AddRepoProgress
@@ -25,15 +26,15 @@ const createProgressBar = (progress: number, width: number): string => {
 const getStageColor = (stage: AddRepoProgress["stage"]): string => {
   switch (stage) {
     case "cloning":
-      return "#00BFFF" // Deep sky blue
+      return colors.progress.cloning
     case "indexing":
-      return "#FFD700" // Gold
+      return colors.progress.indexing
     case "complete":
-      return "#00FF00" // Green
+      return colors.progress.complete
     case "error":
-      return "#FF4444" // Red
+      return colors.progress.error
     default:
-      return "#FFFFFF"
+      return colors.text.primary
   }
 }
 
@@ -69,7 +70,7 @@ export const ProgressModal = ({ progress }: ProgressModalProps) => {
         left: "10%",
         width: "80%",
         height: 10,
-        backgroundColor: "#1a1a1a",
+        backgroundColor: colors.bg.elevated,
         borderStyle: "double",
         borderColor: stageColor,
         border: true,
@@ -89,7 +90,7 @@ export const ProgressModal = ({ progress }: ProgressModalProps) => {
       <text
         content={progress.message}
         style={{
-          fg: "#CCCCCC",
+          fg: colors.interactive.default,
           marginBottom: 1,
         }}
       />
@@ -109,7 +110,7 @@ export const ProgressModal = ({ progress }: ProgressModalProps) => {
         <text
           content={` ${progress.progress}%`}
           style={{
-            fg: "#888888",
+            fg: colors.text.secondary,
             marginLeft: 1,
           }}
         />
@@ -119,7 +120,7 @@ export const ProgressModal = ({ progress }: ProgressModalProps) => {
         <text
           content={`Files indexed: ${progress.filesIndexed}`}
           style={{
-            fg: "#666666",
+            fg: colors.text.tertiary,
             marginTop: 1,
           }}
         />
@@ -128,7 +129,7 @@ export const ProgressModal = ({ progress }: ProgressModalProps) => {
       <text
         content={progress.stage === "complete" ? "[Enter] Continue" : "Please wait..."}
         style={{
-          fg: "#666666",
+          fg: colors.text.tertiary,
           marginTop: 1,
         }}
       />

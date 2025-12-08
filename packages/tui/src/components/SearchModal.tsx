@@ -2,6 +2,7 @@ import { TextAttributes, type InputRenderable } from "@opentui/core"
 import { useRenderer, useKeyboard } from "@opentui/react"
 import { useEffect, useRef, useState } from "react"
 import type { SearchMode } from "@repobase/engine"
+import { colors } from "../theme/index.js"
 
 interface PasteEvent {
   text: string
@@ -88,9 +89,9 @@ export const SearchModal = ({ onSubmit, onCancel, onInput, value }: SearchModalP
         left: "10%",
         width: "80%",
         height: 12,
-        backgroundColor: "#1a1a1a",
+        backgroundColor: colors.bg.elevated,
         borderStyle: "double",
-        borderColor: "#00AAFF",
+        borderColor: colors.status.info.default,
         border: true,
         flexDirection: "column",
         padding: 1,
@@ -99,7 +100,7 @@ export const SearchModal = ({ onSubmit, onCancel, onInput, value }: SearchModalP
       <text
         content="Search Repositories"
         style={{
-          fg: "#00AAFF",
+          fg: colors.status.info.default,
           attributes: TextAttributes.BOLD,
           marginBottom: 1,
         }}
@@ -108,7 +109,7 @@ export const SearchModal = ({ onSubmit, onCancel, onInput, value }: SearchModalP
         title="Search Query"
         style={{
           border: true,
-          borderColor: inputFocused ? "#00AAFF" : "#4a4a4a",
+          borderColor: inputFocused ? colors.status.info.default : colors.border.default,
           height: 3,
         }}
       >
@@ -119,7 +120,7 @@ export const SearchModal = ({ onSubmit, onCancel, onInput, value }: SearchModalP
           onSubmit={handleSubmit}
           focused={inputFocused}
           style={{
-            focusedBackgroundColor: "#000000",
+            focusedBackgroundColor: colors.bg.muted,
           }}
         />
       </box>
@@ -134,7 +135,7 @@ export const SearchModal = ({ onSubmit, onCancel, onInput, value }: SearchModalP
       >
         <text
           content="Mode: "
-          style={{ fg: "#888888" }}
+          style={{ fg: colors.text.secondary }}
         />
         {SEARCH_MODES.map((item, index) => {
           const isSelected = index === selectedModeIndex
@@ -143,7 +144,7 @@ export const SearchModal = ({ onSubmit, onCancel, onInput, value }: SearchModalP
               key={item.mode}
               content={`[${isSelected ? "●" : "○"}] ${item.label}`}
               style={{
-                fg: isSelected ? "#00AAFF" : "#666666",
+                fg: isSelected ? colors.status.info.default : colors.text.tertiary,
                 attributes: isSelected ? TextAttributes.BOLD : undefined,
               }}
             />
@@ -154,7 +155,7 @@ export const SearchModal = ({ onSubmit, onCancel, onInput, value }: SearchModalP
       <text
         content={SEARCH_MODES[selectedModeIndex].description}
         style={{
-          fg: "#555555",
+          fg: colors.text.muted,
           marginTop: 0,
         }}
       />
@@ -162,7 +163,7 @@ export const SearchModal = ({ onSubmit, onCancel, onInput, value }: SearchModalP
       <text
         content="[Enter] Search  [Tab] Switch focus  [←/→] Change mode  [Esc] Cancel"
         style={{
-          fg: "#666666",
+          fg: colors.text.tertiary,
           marginTop: 1,
         }}
       />

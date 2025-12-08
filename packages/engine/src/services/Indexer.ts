@@ -1,5 +1,5 @@
 import { FileSystem } from "@effect/platform"
-import { Context, Effect, Layer, Option } from "effect"
+import { Context, Effect, Layer, Option, SubscriptionRef } from "effect"
 import { IndexError, SearchError } from "../errors.js"
 import type { FileChange } from "./GitClient.js"
 import * as os from "os"
@@ -95,10 +95,30 @@ export interface SearchOptions {
 export type SearchMode = "keyword" | "semantic" | "hybrid"
 
 /**
+ * Progress state for indexing operations
+ */
+export interface IndexingProgress {
+  readonly phase: "scanning" | "indexing" | "finalizing"
+  readonly filesProcessed: number
+  readonly totalFiles: number
+  readonly currentFile?: string
+}
+
+/**
+ * Initial indexing progress state
+ */
+export const initialIndexingProgress: IndexingProgress = {
+  phase: "scanning",
+  filesProcessed: 0,
+  totalFiles: 0
+}
+
+/**
  * Options for indexing operations
  */
 export interface IndexOptions {
   force?: boolean // Force full re-index even if files haven't changed
+  progressRef?: SubscriptionRef.SubscriptionRef<IndexingProgress>
 }
 
 /**
@@ -300,6 +320,15 @@ export const make = Effect.gen(function* () {
       const startTime = Date.now()
       const tbl = yield* getTable
       const force = options?.force ?? false
+      const progressRef = options?.progressRef
+
+      // Helper to update progress
+      const updateProgress = (update: Partial<IndexingProgress>) =>
+        progressRef
+          ? SubscriptionRef.update(progressRef, (prev) => ({ ...prev, ...update }))
+          : Effect.void
+
+      yield* updateProgress({ phase: "scanning", filesProcessed: 0, totalFiles: 0 })
 
       // Get existing records for this repo
       const existing = yield* Effect.tryPromise({
@@ -372,6 +401,13 @@ export const make = Effect.gen(function* () {
       // Find deleted files
       const toDelete = [...existingByPath.keys()].filter((p) => !seenPaths.has(p))
 
+      // Update progress with total files to index
+      yield* updateProgress({ 
+        phase: "indexing", 
+        filesProcessed: 0, 
+        totalFiles: toIndex.length 
+      })
+
       // Delete removed files from index
       if (toDelete.length > 0) {
         for (const path of toDelete) {
@@ -392,11 +428,18 @@ export const make = Effect.gen(function* () {
           }).pipe(Effect.ignore)
         }
 
-        // Generate embeddings and insert
+        // Generate embeddings and insert - with progress updates
+        let processed = 0
         const records = yield* Effect.forEach(
           toIndex,
           (file) =>
             Effect.gen(function* () {
+              // Update progress before processing each file
+              yield* updateProgress({ 
+                filesProcessed: processed, 
+                currentFile: file.path 
+              })
+
               const vector = yield* embedText(file.contents)
               const stat = yield* fs.stat(`${repoPath}/${file.path}`).pipe(
                 Effect.catchAll(() => Effect.succeed({ mtime: Option.none<Date>(), size: BigInt(0) }))
@@ -406,6 +449,9 @@ export const make = Effect.gen(function* () {
                 onNone: () => Date.now(),
                 onSome: (d) => d.getTime()
               })
+
+              processed++
+              
               return {
                 id: `${repoId}:${file.path}`,
                 repo: repoId,
@@ -420,6 +466,13 @@ export const make = Effect.gen(function* () {
             }),
           { concurrency: 1 } // Process sequentially to avoid overwhelming the embedder
         )
+
+        yield* updateProgress({ 
+          phase: "finalizing", 
+          filesProcessed: toIndex.length, 
+          totalFiles: toIndex.length,
+          currentFile: undefined
+        })
 
         yield* Effect.tryPromise({
           try: () => tbl.add(records),

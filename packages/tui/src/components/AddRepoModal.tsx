@@ -1,6 +1,7 @@
 import { TextAttributes, type InputRenderable } from "@opentui/core"
 import { useRenderer } from "@opentui/react"
 import { useEffect, useRef } from "react"
+import { colors } from "../theme/index.js"
 
 interface PasteEvent {
   text: string
@@ -41,9 +42,9 @@ export const AddRepoModal = ({ onSubmit, onCancel, onInput, value }: AddRepoModa
         left: "10%",
         width: "80%",
         height: 8,
-        backgroundColor: "#1a1a1a",
+        backgroundColor: colors.bg.elevated,
         borderStyle: "double",
-        borderColor: "#00FF00",
+        borderColor: colors.accent.default,
         border: true,
         flexDirection: "column",
         padding: 1,
@@ -52,7 +53,7 @@ export const AddRepoModal = ({ onSubmit, onCancel, onInput, value }: AddRepoModa
       <text
         content="Add Repository"
         style={{
-          fg: "#00FF00",
+          fg: colors.accent.default,
           attributes: TextAttributes.BOLD,
           marginBottom: 1,
         }}
@@ -61,7 +62,7 @@ export const AddRepoModal = ({ onSubmit, onCancel, onInput, value }: AddRepoModa
         title="GitHub URL"
         style={{
           border: true,
-          borderColor: "#4a4a4a",
+          borderColor: colors.border.default,
           height: 3,
         }}
       >
@@ -72,14 +73,14 @@ export const AddRepoModal = ({ onSubmit, onCancel, onInput, value }: AddRepoModa
           onSubmit={onSubmit}
           focused
           style={{
-            focusedBackgroundColor: "#000000",
+            focusedBackgroundColor: colors.bg.muted,
           }}
         />
       </box>
       <text
         content="[Enter] Confirm  [Esc] Cancel  (Paste supported)"
         style={{
-          fg: "#666666",
+          fg: colors.text.tertiary,
           marginTop: 1,
         }}
       />

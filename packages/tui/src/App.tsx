@@ -3,6 +3,7 @@ import type { RepoConfig, SearchMode, SearchResult, AddRepoProgress } from "@rep
 import { initialProgress } from "@repobase/engine"
 import { useCallback, useState } from "react"
 import { Header, RepoList, StatusBar, AddRepoModal, SearchModal, SearchResults, ProgressModal } from "./components/index.js"
+import { colors } from "./theme/index.js"
 
 type AppMode = "list" | "add" | "syncing" | "search" | "results" | "adding"
 
@@ -225,7 +226,7 @@ export const App = ({
           flexDirection: "column",
           width: "100%",
           height: "100%",
-          backgroundColor: "#0d0d0d",
+          backgroundColor: colors.bg.base,
         }}
       >
         <Header version="0.1.0" />
@@ -247,7 +248,7 @@ export const App = ({
         flexDirection: "column",
         width: "100%",
         height: "100%",
-        backgroundColor: "#0d0d0d",
+        backgroundColor: colors.bg.base,
       }}
     >
       <Header version="0.1.0" />

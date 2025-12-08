@@ -1,4 +1,5 @@
 import { TextAttributes } from "@opentui/core"
+import { colors } from "../theme/index.js"
 
 interface StatusBarProps {
   mode: "list" | "add" | "syncing" | "search" | "results" | "adding"
@@ -20,10 +21,10 @@ export const StatusBar = ({ mode, message }: StatusBarProps) => {
   }
 
   const getMessageColor = () => {
-    if (!message) return "#888888"
-    if (message.startsWith("Error")) return "#FF5555"
-    if (message.startsWith("✓")) return "#55FF55"
-    return "#FFFF55"
+    if (!message) return colors.text.secondary
+    if (message.startsWith("Error")) return colors.status.error.default
+    if (message.startsWith("✓")) return colors.status.success.default
+    return colors.status.warning.default
   }
 
   const helpText = getHelpText()
@@ -33,7 +34,7 @@ export const StatusBar = ({ mode, message }: StatusBarProps) => {
       style={{
         padding: 1,
         borderStyle: "single",
-        borderColor: "#4a4a4a",
+        borderColor: colors.border.default,
         border: true,
         flexDirection: "row",
         justifyContent: "space-between",
@@ -50,7 +51,7 @@ export const StatusBar = ({ mode, message }: StatusBarProps) => {
       <text
         content={helpText}
         style={{
-          fg: "#888888",
+          fg: colors.text.secondary,
         }}
       />
     </box>

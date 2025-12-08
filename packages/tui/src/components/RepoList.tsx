@@ -1,6 +1,7 @@
 import { TextAttributes } from "@opentui/core"
 import type { RepoConfig } from "@repobase/engine"
 import { Option } from "effect"
+import { colors } from "../theme/index.js"
 
 interface RepoListProps {
   repos: RepoConfig[]
@@ -16,11 +17,11 @@ const formatMode = (repo: RepoConfig): string => {
 
 const formatStatus = (repo: RepoConfig): { text: string; color: string } => {
   if (repo.mode._tag === "pinned") {
-    return { text: "○ pinned", color: "#888888" }
+    return { text: "○ pinned", color: colors.text.secondary }
   }
   return Option.isSome(repo.lastSyncedCommit)
-    ? { text: "✓ synced", color: "#00FF00" }
-    : { text: "○ pending", color: "#FFFF00" }
+    ? { text: "✓ synced", color: colors.status.success.default }
+    : { text: "○ pending", color: colors.status.warning.default }
 }
 
 export const RepoList = ({ repos, selectedIndex }: RepoListProps) => {
@@ -36,11 +37,11 @@ export const RepoList = ({ repos, selectedIndex }: RepoListProps) => {
       >
         <text
           content="No repositories configured."
-          style={{ fg: "#888888" }}
+          style={{ fg: colors.text.secondary }}
         />
         <text
           content="Press [a] to add one."
-          style={{ fg: "#888888", marginTop: 1 }}
+          style={{ fg: colors.text.tertiary, marginTop: 1 }}
         />
       </box>
     )
@@ -57,7 +58,7 @@ export const RepoList = ({ repos, selectedIndex }: RepoListProps) => {
       <text
         content={`Repositories (${repos.length})`}
         style={{
-          fg: "#FFFFFF",
+          fg: colors.text.primary,
           attributes: TextAttributes.BOLD,
           marginBottom: 1,
         }}
@@ -79,14 +80,14 @@ export const RepoList = ({ repos, selectedIndex }: RepoListProps) => {
               key={repo.id}
               style={{
                 flexDirection: "row",
-                backgroundColor: isSelected ? "#333333" : undefined,
+                backgroundColor: isSelected ? colors.bg.selected : undefined,
                 padding: 0,
               }}
             >
               <text
                 content={`${prefix}${repo.id.padEnd(24)} ${mode.padEnd(18)} ${status.text}`}
                 style={{
-                  fg: isSelected ? "#FFFFFF" : "#CCCCCC",
+                  fg: isSelected ? colors.text.primary : colors.interactive.default,
                   attributes: isSelected ? TextAttributes.BOLD : undefined,
                 }}
               />

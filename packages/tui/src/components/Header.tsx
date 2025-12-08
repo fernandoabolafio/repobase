@@ -1,4 +1,5 @@
 import { TextAttributes } from "@opentui/core"
+import { colors } from "../theme/index.js"
 
 interface HeaderProps {
   version: string
@@ -12,21 +13,21 @@ export const Header = ({ version }: HeaderProps) => {
         justifyContent: "space-between",
         padding: 1,
         borderStyle: "single",
-        borderColor: "#4a4a4a",
+        borderColor: colors.border.default,
         border: true,
       }}
     >
       <text
         content="repobase"
         style={{
-          fg: "#00FF00",
+          fg: colors.accent.default,
           attributes: TextAttributes.BOLD,
         }}
       />
       <text
         content={`v${version}`}
         style={{
-          fg: "#888888",
+          fg: colors.text.secondary,
         }}
       />
     </box>

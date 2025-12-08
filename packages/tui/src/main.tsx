@@ -8,7 +8,10 @@ import {
   RepobaseEngineLayer,
   GitClientLayer,
   RepoStoreLayer,
+  IndexerLayer,
   type RepoConfig,
+  type SearchMode,
+  type SearchResult,
 } from "@repobase/engine"
 import { App } from "./App.js"
 
@@ -18,7 +21,8 @@ const SilentLogger = Logger.minimumLogLevel(LogLevel.None)
 // Layer composition - same as CLI but with silent logging
 const EngineLive = RepobaseEngineLayer.pipe(
   Layer.provide(GitClientLayer),
-  Layer.provide(RepoStoreLayer)
+  Layer.provide(RepoStoreLayer),
+  Layer.provide(IndexerLayer)
 )
 
 const MainLayer = EngineLive.pipe(
@@ -33,7 +37,7 @@ const runEffect = <A, E>(
   Effect.runPromise(effect.pipe(Effect.provide(MainLayer))) as Promise<A>
 
 // Engine service functions
-const { addRepo, removeRepo, listRepos, syncRepo, syncAll } =
+const { addRepo, removeRepo, listRepos, syncRepo, syncAll, search } =
   Effect.serviceFunctions(RepobaseEngine)
 
 // Main entry point
@@ -66,6 +70,9 @@ const main = async () => {
       }}
       onRefreshRepos={async () => {
         return await runEffect(listRepos())
+      }}
+      onSearch={async (query: string, mode: SearchMode) => {
+        return await runEffect(search(query, mode))
       }}
       onQuit={() => {
         process.exit(0)

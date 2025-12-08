@@ -1,19 +1,22 @@
 import { TextAttributes } from "@opentui/core"
 
 interface StatusBarProps {
-  mode: "list" | "add" | "syncing"
+  mode: "list" | "add" | "syncing" | "search" | "results"
   message?: string
 }
 
 export const StatusBar = ({ mode, message }: StatusBarProps) => {
   const getHelpText = () => {
-    if (mode === "add") {
+    if (mode === "add" || mode === "search") {
       return "" // Help text shown in modal
     }
     if (mode === "syncing") {
       return "Processing..."
     }
-    return "[a] Add  [d] Delete  [s] Sync  [S] Sync All  [q] Quit"
+    if (mode === "results") {
+      return "[Esc] Back"
+    }
+    return "[a] Add  [d] Delete  [s] Sync  [S] Sync All  [/] Search  [q] Quit"
   }
 
   const getMessageColor = () => {

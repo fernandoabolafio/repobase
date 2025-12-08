@@ -2,8 +2,10 @@ import { FileSystem } from "@effect/platform"
 import { Context, Effect, Layer, Option } from "effect"
 import {
   GitError,
+  IndexError,
   RepoAlreadyExistsError,
   RepoNotFoundError,
+  SearchError,
   StoreError
 } from "../errors.js"
 import {
@@ -14,6 +16,13 @@ import {
 } from "../schemas.js"
 import { GitClient } from "./GitClient.js"
 import { RepoStore } from "./RepoStore.js"
+import {
+  Indexer,
+  type IndexSummary,
+  type SearchMode,
+  type SearchOptions,
+  type SearchResult
+} from "./Indexer.js"
 import * as os from "os"
 
 /**
@@ -31,6 +40,7 @@ export interface SyncResult {
   readonly updated: boolean
   readonly previousCommit: Option.Option<string>
   readonly currentCommit: string
+  readonly indexSummary?: IndexSummary
 }
 
 /**
@@ -39,6 +49,8 @@ export interface SyncResult {
 export type EngineError =
   | GitError
   | StoreError
+  | IndexError
+  | SearchError
   | RepoNotFoundError
   | RepoAlreadyExistsError
 
@@ -57,6 +69,11 @@ export interface RepobaseEngineService {
   ) => Effect.Effect<Option.Option<RepoConfig>, EngineError>
   readonly syncRepo: (id: string) => Effect.Effect<SyncResult, EngineError>
   readonly syncAll: () => Effect.Effect<Array<SyncResult>, EngineError>
+  readonly search: (
+    query: string,
+    mode: SearchMode,
+    options?: SearchOptions
+  ) => Effect.Effect<SearchResult[], EngineError>
 }
 
 /**
@@ -77,6 +94,7 @@ const getReposDir = () => `${os.homedir()}/.repobase/repos`
 export const make = Effect.gen(function* () {
   const git = yield* GitClient
   const store = yield* RepoStore
+  const indexer = yield* Indexer
   const fs = yield* FileSystem.FileSystem
 
   const reposDir = getReposDir()
@@ -120,6 +138,14 @@ export const make = Effect.gen(function* () {
 
       // Save config
       yield* store.addRepo(repo)
+
+      // Index the repository
+      yield* Effect.log(`Indexing ${id}...`)
+      const indexResult = yield* indexer.indexRepo(id, localPath)
+      yield* Effect.log(
+        `Indexed ${indexResult.filesIndexed} files in ${indexResult.durationMs}ms`
+      )
+
       yield* Effect.log(`Added repository: ${id}`)
 
       return repo
@@ -132,6 +158,10 @@ export const make = Effect.gen(function* () {
         onNone: () => Effect.fail(new RepoNotFoundError({ id })),
         onSome: Effect.succeed
       })
+
+      // Remove from index first
+      yield* Effect.log(`Removing index for ${id}...`)
+      yield* indexer.removeIndex(id)
 
       // Remove files
       yield* fs.remove(repo.localPath, { recursive: true }).pipe(
@@ -192,8 +222,30 @@ export const make = Effect.gen(function* () {
         }
       }
 
+      // Get changed files via git diff (if we have a previous commit)
+      const changes = yield* Option.match(previousCommit, {
+        onNone: () => Effect.succeed([]),
+        onSome: (prev) => git.diffNameStatus(repo.localPath, prev, remoteHead)
+      })
+
       // Update working tree - use origin/<branch> for shallow clones
       yield* git.resetHard(repo.localPath, `origin/${repo.mode.branch}`)
+
+      // Update index
+      let indexSummary: IndexSummary
+      if (changes.length > 0) {
+        // Incremental indexing
+        yield* Effect.log(`Incrementally indexing ${changes.length} changed files...`)
+        indexSummary = yield* indexer.indexChanges(id, repo.localPath, changes)
+      } else {
+        // Full re-index (first sync or no previous commit)
+        yield* Effect.log(`Full re-indexing ${id}...`)
+        indexSummary = yield* indexer.indexRepo(id, repo.localPath)
+      }
+
+      yield* Effect.log(
+        `Indexed ${indexSummary.filesIndexed} files, deleted ${indexSummary.filesDeleted} in ${indexSummary.durationMs}ms`
+      )
 
       // Update store
       yield* store.updateRepo(id, {
@@ -209,7 +261,8 @@ export const make = Effect.gen(function* () {
         id,
         updated: true,
         previousCommit,
-        currentCommit: remoteHead
+        currentCommit: remoteHead,
+        indexSummary
       }
     })
 
@@ -224,17 +277,29 @@ export const make = Effect.gen(function* () {
       return yield* Effect.forEach(data.repos, (repo) => syncRepo(repo.id))
     })
 
+  const search: RepobaseEngineService["search"] = (query, mode, options) => {
+    switch (mode) {
+      case "keyword":
+        return indexer.searchKeyword(query, options)
+      case "semantic":
+        return indexer.searchSemantic(query, options)
+      case "hybrid":
+        return indexer.searchHybrid(query, options)
+    }
+  }
+
   return RepobaseEngine.of({
     addRepo,
     removeRepo,
     listRepos,
     getRepo,
     syncRepo,
-    syncAll
+    syncAll,
+    search
   })
 })
 
 /**
- * RepobaseEngine layer - requires GitClient, RepoStore, and FileSystem
+ * RepobaseEngine layer - requires GitClient, RepoStore, Indexer, and FileSystem
  */
 export const layer = Layer.effect(RepobaseEngine, make)

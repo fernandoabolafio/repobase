@@ -19,6 +19,8 @@ export {
 export {
   GitError,
   StoreError,
+  IndexError,
+  SearchError,
   RepoNotFoundError,
   RepoAlreadyExistsError,
   type EngineError
@@ -27,6 +29,15 @@ export {
 // Services
 export { GitClient, type GitClientService, type FileChange } from "./services/GitClient.js"
 export { RepoStore, type RepoStoreService } from "./services/RepoStore.js"
+export {
+  Indexer,
+  type IndexerService,
+  type IndexSummary,
+  type SearchResult,
+  type SearchOptions,
+  type SearchMode,
+  type IndexOptions
+} from "./services/Indexer.js"
 export {
   RepobaseEngine,
   type RepobaseEngineService,
@@ -37,14 +48,15 @@ export {
 // Layers
 export { layer as GitClientLayer } from "./services/GitClient.js"
 export { layer as RepoStoreLayer } from "./services/RepoStore.js"
+export { layer as IndexerLayer } from "./services/Indexer.js"
 export { layer as RepobaseEngineLayer } from "./services/RepobaseEngine.js"
 
 // Layer composition for Node.js
 import { Layer } from "effect"
-import { FileSystem } from "@effect/platform"
 import { NodeFileSystem, NodeCommandExecutor } from "@effect/platform-node"
 import { layer as GitClientLayer } from "./services/GitClient.js"
 import { layer as RepoStoreLayer } from "./services/RepoStore.js"
+import { layer as IndexerLayer } from "./services/Indexer.js"
 import { layer as RepobaseEngineLayer } from "./services/RepobaseEngine.js"
 
 /**
@@ -66,6 +78,11 @@ export const GitClientLive = GitClientLayer.pipe(Layer.provide(PlatformLive))
 export const RepoStoreLive = RepoStoreLayer.pipe(Layer.provide(PlatformLive))
 
 /**
+ * Indexer layer with Node.js platform
+ */
+export const IndexerLive = IndexerLayer.pipe(Layer.provide(PlatformLive))
+
+/**
  * RepobaseEngine layer with all dependencies
  * Composes all required layers and provides the platform at the end
  */
@@ -74,6 +91,7 @@ export const RepobaseEngineLive = RepobaseEngineLayer.pipe(
     Layer.mergeAll(
       GitClientLayer,
       RepoStoreLayer,
+      IndexerLayer,
       PlatformLive
     )
   )

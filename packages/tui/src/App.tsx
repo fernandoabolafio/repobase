@@ -1,9 +1,9 @@
 import { useKeyboard } from "@opentui/react"
-import type { RepoConfig } from "@repobase/engine"
+import type { RepoConfig, SearchMode, SearchResult } from "@repobase/engine"
 import { useCallback, useState } from "react"
-import { Header, RepoList, StatusBar, AddRepoModal } from "./components/index.js"
+import { Header, RepoList, StatusBar, AddRepoModal, SearchModal, SearchResults } from "./components/index.js"
 
-type AppMode = "list" | "add" | "syncing"
+type AppMode = "list" | "add" | "syncing" | "search" | "results"
 
 interface AppProps {
   initialRepos: RepoConfig[]
@@ -12,6 +12,7 @@ interface AppProps {
   onSyncRepo: (id: string) => Promise<{ updated: boolean }>
   onSyncAll: () => Promise<Array<{ id: string; updated: boolean }>>
   onRefreshRepos: () => Promise<RepoConfig[]>
+  onSearch: (query: string, mode: SearchMode) => Promise<SearchResult[]>
   onQuit: () => void
 }
 
@@ -22,6 +23,7 @@ export const App = ({
   onSyncRepo,
   onSyncAll,
   onRefreshRepos,
+  onSearch,
   onQuit,
 }: AppProps) => {
   const [repos, setRepos] = useState<RepoConfig[]>(initialRepos)
@@ -29,6 +31,12 @@ export const App = ({
   const [mode, setMode] = useState<AppMode>("list")
   const [message, setMessage] = useState<string | undefined>()
   const [inputValue, setInputValue] = useState("")
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchMode, setSearchMode] = useState<SearchMode>("hybrid")
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [searchResultIndex, setSearchResultIndex] = useState(0)
 
   const showMessage = useCallback((msg: string, duration = 3000) => {
     setMessage(msg)
@@ -113,12 +121,46 @@ export const App = ({
     setMode("list")
   }, [onSyncAll, onRefreshRepos, showMessage])
 
+  const handleSearch = useCallback(async (query: string, searchModeParam: SearchMode) => {
+    if (!query.trim()) {
+      setMode("list")
+      return
+    }
+    
+    setMode("syncing")
+    setMessage(`Searching: "${query}"...`)
+    setSearchQuery(query)
+    setSearchMode(searchModeParam)
+    
+    try {
+      const results = await onSearch(query, searchModeParam)
+      setSearchResults(results)
+      setSearchResultIndex(0)
+      setMessage(undefined)
+      setMode("results")
+    } catch (error) {
+      showMessage(`Error: ${error instanceof Error ? error.message : "Search failed"}`)
+      setMode("list")
+    }
+    
+    setInputValue("")
+  }, [onSearch, showMessage])
+
+  const handleCloseResults = useCallback(() => {
+    setMode("list")
+    setSearchResults([])
+    setSearchQuery("")
+    setSearchResultIndex(0)
+  }, [])
+
   useKeyboard((key) => {
     // Handle escape/quit in any mode
     if (key.name === "escape" || (key.name === "q" && mode === "list")) {
-      if (mode === "add") {
+      if (mode === "add" || mode === "search") {
         setMode("list")
         setInputValue("")
+      } else if (mode === "results") {
+        handleCloseResults()
       } else if (mode === "list") {
         onQuit()
       }
@@ -150,8 +192,35 @@ export const App = ({
           handleSyncRepo()
         }
         break
+      case "/":
+        setMode("search")
+        break
     }
   })
+
+  // Render search results view
+  if (mode === "results") {
+    return (
+      <box
+        style={{
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          backgroundColor: "#0d0d0d",
+        }}
+      >
+        <Header version="0.1.0" />
+        <SearchResults
+          query={searchQuery}
+          mode={searchMode}
+          results={searchResults}
+          selectedIndex={searchResultIndex}
+          onSelectIndex={setSearchResultIndex}
+          onClose={handleCloseResults}
+        />
+      </box>
+    )
+  }
 
   return (
     <box
@@ -169,6 +238,18 @@ export const App = ({
       {mode === "add" && (
         <AddRepoModal
           onSubmit={handleAddRepo}
+          onCancel={() => {
+            setMode("list")
+            setInputValue("")
+          }}
+          onInput={setInputValue}
+          value={inputValue}
+        />
+      )}
+      
+      {mode === "search" && (
+        <SearchModal
+          onSubmit={handleSearch}
           onCancel={() => {
             setMode("list")
             setInputValue("")

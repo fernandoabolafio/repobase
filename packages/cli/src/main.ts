@@ -7,6 +7,7 @@ import {
   RepobaseEngineLayer,
   GitClientLayer,
   RepoStoreLayer,
+  IndexerLayer,
   trackingMode,
   pinnedMode,
   type RepoConfig
@@ -184,7 +185,8 @@ const cli = Command.run(rootCommand, {
 // We compose the engine layers on top of it
 const EngineLive = RepobaseEngineLayer.pipe(
   Layer.provide(GitClientLayer),
-  Layer.provide(RepoStoreLayer)
+  Layer.provide(RepoStoreLayer),
+  Layer.provide(IndexerLayer)
 )
 
 const MainLayer = EngineLive.pipe(Layer.provide(NodeContext.layer))

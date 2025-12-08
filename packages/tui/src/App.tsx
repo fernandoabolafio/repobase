@@ -4,6 +4,7 @@ import { initialProgress } from "@repobase/engine"
 import { useCallback, useState } from "react"
 import { Header, RepoList, StatusBar, AddRepoModal, SearchModal, SearchResults, ProgressModal } from "./components/index.js"
 import { colors } from "./theme/index.js"
+import { startMcpServer, stopMcpServer, isMcpServerRunning } from "./mcp-process.js"
 
 type AppMode = "list" | "add" | "syncing" | "search" | "results" | "adding"
 
@@ -42,6 +43,9 @@ export const App = ({
   const [searchMode, setSearchMode] = useState<SearchMode>("hybrid")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [searchResultIndex, setSearchResultIndex] = useState(0)
+  
+  // MCP server state
+  const [mcpServerRunning, setMcpServerRunning] = useState(() => isMcpServerRunning())
 
   const showMessage = useCallback((msg: string, duration = 3000) => {
     setMessage(msg)
@@ -173,6 +177,26 @@ export const App = ({
     setSearchResultIndex(0)
   }, [])
 
+  const handleToggleMcpServer = useCallback(() => {
+    if (mcpServerRunning) {
+      const stopped = stopMcpServer()
+      if (stopped) {
+        setMcpServerRunning(false)
+        showMessage("MCP server stopped")
+      } else {
+        showMessage("Error: Failed to stop MCP server")
+      }
+    } else {
+      const started = startMcpServer()
+      if (started) {
+        setMcpServerRunning(true)
+        showMessage("MCP server started")
+      } else {
+        showMessage("Error: Failed to start MCP server")
+      }
+    }
+  }, [mcpServerRunning, showMessage])
+
   useKeyboard((key) => {
     // Handle escape/quit in any mode
     if (key.name === "escape" || (key.name === "q" && mode === "list")) {
@@ -215,6 +239,9 @@ export const App = ({
       case "/":
         setMode("search")
         break
+      case "m":
+        handleToggleMcpServer()
+        break
     }
   })
 
@@ -253,7 +280,7 @@ export const App = ({
     >
       <Header version="0.1.0" />
       <RepoList repos={repos} selectedIndex={selectedIndex} />
-      <StatusBar mode={mode} message={message} />
+      <StatusBar mode={mode} message={message} mcpServerRunning={mcpServerRunning} />
       
       {mode === "add" && (
         <AddRepoModal

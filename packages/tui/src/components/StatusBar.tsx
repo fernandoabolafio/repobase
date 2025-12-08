@@ -4,9 +4,10 @@ import { colors } from "../theme/index.js"
 interface StatusBarProps {
   mode: "list" | "add" | "syncing" | "search" | "results" | "adding"
   message?: string
+  mcpServerRunning?: boolean
 }
 
-export const StatusBar = ({ mode, message }: StatusBarProps) => {
+export const StatusBar = ({ mode, message, mcpServerRunning }: StatusBarProps) => {
   const getHelpText = () => {
     if (mode === "add" || mode === "search") {
       return "" // Help text shown in modal
@@ -17,7 +18,7 @@ export const StatusBar = ({ mode, message }: StatusBarProps) => {
     if (mode === "results") {
       return "[Esc] Back"
     }
-    return "[a] Add  [d] Delete  [s] Sync  [S] Sync All  [/] Search  [q] Quit"
+    return "[a] Add  [d] Delete  [s] Sync  [S] Sync All  [/] Search  [m] MCP  [q] Quit"
   }
 
   const getMessageColor = () => {
@@ -28,6 +29,8 @@ export const StatusBar = ({ mode, message }: StatusBarProps) => {
   }
 
   const helpText = getHelpText()
+  const mcpStatus = mcpServerRunning ? "MCP: ●" : "MCP: ○"
+  const mcpColor = mcpServerRunning ? colors.status.success.default : colors.text.secondary
 
   return (
     <box
@@ -41,13 +44,21 @@ export const StatusBar = ({ mode, message }: StatusBarProps) => {
         height: 3,
       }}
     >
-      <text
-        content={message || ""}
-        style={{
-          fg: getMessageColor(),
-          attributes: message ? TextAttributes.BOLD : undefined,
-        }}
-      />
+      <box style={{ flexDirection: "row", gap: 2 }}>
+        <text
+          content={message || ""}
+          style={{
+            fg: getMessageColor(),
+            attributes: message ? TextAttributes.BOLD : undefined,
+          }}
+        />
+        <text
+          content={mcpStatus}
+          style={{
+            fg: mcpColor,
+          }}
+        />
+      </box>
       <text
         content={helpText}
         style={{

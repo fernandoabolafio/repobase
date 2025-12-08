@@ -1,0 +1,25 @@
+{
+  "name": "@repobase/mcp-server",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/main.ts",
+  "types": "src/main.ts",
+  "bin": {
+    "repobase-mcp": "./src/main.ts"
+  },
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@effect/platform": "^0.93.6",
+    "@effect/platform-node": "^0.103.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@repobase/engine": "workspace:*",
+    "effect": "^3.19.9",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  }
+}

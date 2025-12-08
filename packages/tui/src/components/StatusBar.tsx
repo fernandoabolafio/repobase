@@ -1,7 +1,7 @@
 import { TextAttributes } from "@opentui/core"
 
 interface StatusBarProps {
-  mode: "list" | "add" | "syncing" | "search" | "results"
+  mode: "list" | "add" | "syncing" | "search" | "results" | "adding"
   message?: string
 }
 
@@ -10,7 +10,7 @@ export const StatusBar = ({ mode, message }: StatusBarProps) => {
     if (mode === "add" || mode === "search") {
       return "" // Help text shown in modal
     }
-    if (mode === "syncing") {
+    if (mode === "syncing" || mode === "adding") {
       return "Processing..."
     }
     if (mode === "results") {

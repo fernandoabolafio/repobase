@@ -1,13 +1,14 @@
 import { useKeyboard } from "@opentui/react"
-import type { RepoConfig, SearchMode, SearchResult } from "@repobase/engine"
+import type { RepoConfig, SearchMode, SearchResult, AddRepoProgress } from "@repobase/engine"
+import { initialProgress } from "@repobase/engine"
 import { useCallback, useState } from "react"
-import { Header, RepoList, StatusBar, AddRepoModal, SearchModal, SearchResults } from "./components/index.js"
+import { Header, RepoList, StatusBar, AddRepoModal, SearchModal, SearchResults, ProgressModal } from "./components/index.js"
 
-type AppMode = "list" | "add" | "syncing" | "search" | "results"
+type AppMode = "list" | "add" | "syncing" | "search" | "results" | "adding"
 
 interface AppProps {
   initialRepos: RepoConfig[]
-  onAddRepo: (url: string) => Promise<RepoConfig>
+  onAddRepo: (url: string, onProgress: (progress: AddRepoProgress) => void) => Promise<RepoConfig>
   onRemoveRepo: (id: string) => Promise<void>
   onSyncRepo: (id: string) => Promise<{ updated: boolean }>
   onSyncAll: () => Promise<Array<{ id: string; updated: boolean }>>
@@ -32,6 +33,9 @@ export const App = ({
   const [message, setMessage] = useState<string | undefined>()
   const [inputValue, setInputValue] = useState("")
   
+  // Progress state for adding repos
+  const [addProgress, setAddProgress] = useState<AddRepoProgress>(initialProgress)
+  
   // Search state
   const [searchQuery, setSearchQuery] = useState("")
   const [searchMode, setSearchMode] = useState<SearchMode>("hybrid")
@@ -49,19 +53,34 @@ export const App = ({
       return
     }
     
-    setMode("syncing")
-    setMessage("Adding repository...")
+    // Reset progress and show progress modal
+    setAddProgress(initialProgress)
+    setMode("adding")
     
     try {
-      await onAddRepo(url)
+      await onAddRepo(url, (progress) => {
+        setAddProgress(progress)
+      })
       const updatedRepos = await onRefreshRepos()
       setRepos(updatedRepos)
-      showMessage(`✓ Added repository`)
+      // Keep showing progress modal with complete state for a moment
+      setTimeout(() => {
+        showMessage(`✓ Added repository`)
+        setMode("list")
+      }, 500)
     } catch (error) {
-      showMessage(`Error: ${error instanceof Error ? error.message : "Failed to add"}`)
+      setAddProgress({
+        stage: "error",
+        progress: 0,
+        message: error instanceof Error ? error.message : "Failed to add"
+      })
+      // Show error state briefly then return to list
+      setTimeout(() => {
+        showMessage(`Error: ${error instanceof Error ? error.message : "Failed to add"}`)
+        setMode("list")
+      }, 2000)
     }
     
-    setMode("list")
     setInputValue("")
   }, [onAddRepo, onRefreshRepos, showMessage])
 
@@ -257,6 +276,10 @@ export const App = ({
           onInput={setInputValue}
           value={inputValue}
         />
+      )}
+      
+      {mode === "adding" && (
+        <ProgressModal progress={addProgress} />
       )}
     </box>
   )

@@ -2,16 +2,18 @@
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { NodeContext } from "@effect/platform-node"
-import { Effect, Layer, Logger, LogLevel } from "effect"
+import { Effect, Layer, Logger, LogLevel, SubscriptionRef, Stream, Fiber } from "effect"
 import {
   RepobaseEngine,
   RepobaseEngineLayer,
   GitClientLayer,
   RepoStoreLayer,
   IndexerLayer,
+  initialProgress,
   type RepoConfig,
   type SearchMode,
   type SearchResult,
+  type AddRepoProgress,
 } from "@repobase/engine"
 import { App } from "./App.js"
 
@@ -54,8 +56,28 @@ const main = async () => {
   createRoot(renderer).render(
     <App
       initialRepos={initialRepos}
-      onAddRepo={async (url: string) => {
-        return await runEffect(addRepo(url))
+      onAddRepo={async (url: string, onProgress: (p: AddRepoProgress) => void) => {
+        // Create the effect that sets up progress tracking
+        const addWithProgress = Effect.gen(function* () {
+          // Create a SubscriptionRef for progress updates
+          const progressRef = yield* SubscriptionRef.make<AddRepoProgress>(initialProgress)
+          
+          // Fork a fiber to listen for progress updates and call the callback
+          const listenerFiber = yield* Stream.runForEach(
+            progressRef.changes,
+            (progress) => Effect.sync(() => onProgress(progress))
+          ).pipe(Effect.fork)
+          
+          // Run addRepo with the progress ref
+          const result = yield* addRepo(url, { progressRef })
+          
+          // Clean up the listener fiber
+          yield* Fiber.interrupt(listenerFiber)
+          
+          return result
+        })
+        
+        return await runEffect(addWithProgress)
       }}
       onRemoveRepo={async (id: string) => {
         await runEffect(removeRepo(id))

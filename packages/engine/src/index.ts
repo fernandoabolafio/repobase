@@ -42,7 +42,10 @@ export {
   RepobaseEngine,
   type RepobaseEngineService,
   type AddRepoOptions,
-  type SyncResult
+  type AddRepoProgress,
+  type AddRepoStage,
+  type SyncResult,
+  initialProgress
 } from "./services/RepobaseEngine.js"
 
 // Layers

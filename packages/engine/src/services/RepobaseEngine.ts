@@ -1,5 +1,5 @@
 import { FileSystem } from "@effect/platform"
-import { Context, Effect, Layer, Option } from "effect"
+import { Context, Effect, Layer, Option, SubscriptionRef } from "effect"
 import {
   GitError,
   IndexError,
@@ -26,10 +26,33 @@ import {
 import * as os from "os"
 
 /**
+ * Progress state for adding a repository
+ */
+export type AddRepoStage = "cloning" | "indexing" | "complete" | "error"
+
+export interface AddRepoProgress {
+  readonly stage: AddRepoStage
+  readonly progress: number // 0-100
+  readonly message: string
+  readonly filesIndexed?: number
+  readonly totalFiles?: number
+}
+
+/**
+ * Initial progress state
+ */
+export const initialProgress: AddRepoProgress = {
+  stage: "cloning",
+  progress: 0,
+  message: "Starting..."
+}
+
+/**
  * Options for adding a repository
  */
 export interface AddRepoOptions {
   readonly mode?: RepoMode
+  readonly progressRef?: SubscriptionRef.SubscriptionRef<AddRepoProgress>
 }
 
 /**
@@ -101,12 +124,21 @@ export const make = Effect.gen(function* () {
 
   const addRepo: RepobaseEngineService["addRepo"] = (url, options) =>
     Effect.gen(function* () {
+      const progressRef = options?.progressRef
+      
+      // Helper to update progress
+      const updateProgress = (update: Partial<AddRepoProgress>) =>
+        progressRef
+          ? SubscriptionRef.update(progressRef, (prev) => ({ ...prev, ...update }))
+          : Effect.void
+
       const id = deriveRepoId(url)
       const localPath = `${reposDir}/${id}`
 
       // Check if already exists
       const existing = yield* store.getRepo(id)
       if (Option.isSome(existing)) {
+        yield* updateProgress({ stage: "error", message: `Repository ${id} already exists` })
         return yield* Effect.fail(new RepoAlreadyExistsError({ id }))
       }
 
@@ -118,8 +150,19 @@ export const make = Effect.gen(function* () {
       )
 
       // Clone the repository
+      yield* updateProgress({ 
+        stage: "cloning", 
+        progress: 10, 
+        message: `Cloning ${url}...` 
+      })
       yield* Effect.log(`Cloning ${url}...`)
       yield* git.clone(url, localPath)
+
+      yield* updateProgress({ 
+        stage: "cloning", 
+        progress: 40, 
+        message: "Clone complete, preparing..." 
+      })
 
       // Get current commit
       const currentCommit = yield* git.getCurrentCommit(localPath)
@@ -139,12 +182,25 @@ export const make = Effect.gen(function* () {
       // Save config
       yield* store.addRepo(repo)
 
+      yield* updateProgress({ 
+        stage: "indexing", 
+        progress: 50, 
+        message: `Indexing ${id}...` 
+      })
+
       // Index the repository
       yield* Effect.log(`Indexing ${id}...`)
       const indexResult = yield* indexer.indexRepo(id, localPath)
       yield* Effect.log(
         `Indexed ${indexResult.filesIndexed} files in ${indexResult.durationMs}ms`
       )
+
+      yield* updateProgress({ 
+        stage: "complete", 
+        progress: 100, 
+        message: `Added ${id}`,
+        filesIndexed: indexResult.filesIndexed
+      })
 
       yield* Effect.log(`Added repository: ${id}`)
 

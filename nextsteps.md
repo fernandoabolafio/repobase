@@ -1,0 +1,2 @@
+- [ ] Reference repogrep and build a similar interface for the MCP server
+- [ ] Find a good way to ship this to npm

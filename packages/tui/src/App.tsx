@@ -2,11 +2,11 @@ import { useKeyboard } from "@opentui/react"
 import type { RepoConfig, SearchMode, SearchResult, AddRepoProgress } from "@repobase/engine"
 import { initialProgress } from "@repobase/engine"
 import { useCallback, useState } from "react"
-import { Header, RepoList, StatusBar, AddRepoModal, SearchModal, SearchResults, ProgressModal } from "./components/index.js"
+import { Header, RepoList, StatusBar, AddRepoModal, SearchModal, SearchResults, ProgressModal, ConfirmDialog } from "./components/index.js"
 import { colors } from "./theme/index.js"
 import { startMcpServer, stopMcpServer, isMcpServerRunning } from "./mcp-process.js"
 
-type AppMode = "list" | "add" | "syncing" | "search" | "results" | "adding"
+type AppMode = "list" | "add" | "syncing" | "search" | "results" | "adding" | "confirmDelete"
 
 interface AppProps {
   initialRepos: RepoConfig[]
@@ -46,6 +46,9 @@ export const App = ({
   
   // MCP server state
   const [mcpServerRunning, setMcpServerRunning] = useState(() => isMcpServerRunning())
+  
+  // Delete confirmation state
+  const [repoToDelete, setRepoToDelete] = useState<RepoConfig | null>(null)
 
   const showMessage = useCallback((msg: string, duration = 3000) => {
     setMessage(msg)
@@ -89,25 +92,38 @@ export const App = ({
     setInputValue("")
   }, [onAddRepo, onRefreshRepos, showMessage])
 
-  const handleDeleteRepo = useCallback(async () => {
+  const handleRequestDelete = useCallback(() => {
     if (repos.length === 0) return
     
     const repo = repos[selectedIndex]
+    setRepoToDelete(repo)
+    setMode("confirmDelete")
+  }, [repos, selectedIndex])
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!repoToDelete) return
+    
     setMode("syncing")
-    setMessage(`Removing ${repo.id}...`)
+    setMessage(`Removing ${repoToDelete.id}...`)
     
     try {
-      await onRemoveRepo(repo.id)
+      await onRemoveRepo(repoToDelete.id)
       const updatedRepos = await onRefreshRepos()
       setRepos(updatedRepos)
       setSelectedIndex(Math.max(0, selectedIndex - 1))
-      showMessage(`✓ Removed ${repo.id}`)
+      showMessage(`✓ Removed ${repoToDelete.id}`)
     } catch (error) {
       showMessage(`Error: ${error instanceof Error ? error.message : "Failed to remove"}`)
     }
     
+    setRepoToDelete(null)
     setMode("list")
-  }, [repos, selectedIndex, onRemoveRepo, onRefreshRepos, showMessage])
+  }, [repoToDelete, onRemoveRepo, onRefreshRepos, showMessage, selectedIndex])
+
+  const handleCancelDelete = useCallback(() => {
+    setRepoToDelete(null)
+    setMode("list")
+  }, [])
 
   const handleSyncRepo = useCallback(async () => {
     if (repos.length === 0) return
@@ -205,6 +221,8 @@ export const App = ({
         setInputValue("")
       } else if (mode === "results") {
         handleCloseResults()
+      } else if (mode === "confirmDelete") {
+        handleCancelDelete()
       } else if (mode === "list") {
         onQuit()
       }
@@ -227,7 +245,7 @@ export const App = ({
         setMode("add")
         break
       case "d":
-        handleDeleteRepo()
+        handleRequestDelete()
         break
       case "s":
         if (key.shift) {
@@ -308,6 +326,14 @@ export const App = ({
       
       {mode === "adding" && (
         <ProgressModal progress={addProgress} />
+      )}
+      
+      {mode === "confirmDelete" && repoToDelete && (
+        <ConfirmDialog
+          message={`Are you sure you want to delete "${repoToDelete.id}"? This action cannot be undone.`}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
       )}
     </box>
   )

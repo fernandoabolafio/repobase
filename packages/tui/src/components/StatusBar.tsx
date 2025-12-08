@@ -2,14 +2,14 @@ import { TextAttributes } from "@opentui/core"
 import { colors } from "../theme/index.js"
 
 interface StatusBarProps {
-  mode: "list" | "add" | "syncing" | "search" | "results" | "adding"
+  mode: "list" | "add" | "syncing" | "search" | "results" | "adding" | "confirmDelete"
   message?: string
   mcpServerRunning?: boolean
 }
 
 export const StatusBar = ({ mode, message, mcpServerRunning }: StatusBarProps) => {
   const getHelpText = () => {
-    if (mode === "add" || mode === "search") {
+    if (mode === "add" || mode === "search" || mode === "confirmDelete") {
       return "" // Help text shown in modal
     }
     if (mode === "syncing" || mode === "adding") {

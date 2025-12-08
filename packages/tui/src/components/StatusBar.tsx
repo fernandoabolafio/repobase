@@ -8,13 +8,22 @@ interface StatusBarProps {
 export const StatusBar = ({ mode, message }: StatusBarProps) => {
   const getHelpText = () => {
     if (mode === "add") {
-      return "[Enter] Confirm  [Esc] Cancel"
+      return "" // Help text shown in modal
     }
     if (mode === "syncing") {
-      return "Syncing..."
+      return "Processing..."
     }
     return "[a] Add  [d] Delete  [s] Sync  [S] Sync All  [q] Quit"
   }
+
+  const getMessageColor = () => {
+    if (!message) return "#888888"
+    if (message.startsWith("Error")) return "#FF5555"
+    if (message.startsWith("✓")) return "#55FF55"
+    return "#FFFF55"
+  }
+
+  const helpText = getHelpText()
 
   return (
     <box
@@ -23,23 +32,22 @@ export const StatusBar = ({ mode, message }: StatusBarProps) => {
         borderStyle: "single",
         borderColor: "#4a4a4a",
         border: true,
-        flexDirection: "column",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        height: 3,
       }}
     >
-      {message && (
-        <text
-          content={message}
-          style={{
-            fg: message.startsWith("Error") ? "#FF0000" : "#00FF00",
-            marginBottom: 1,
-          }}
-        />
-      )}
       <text
-        content={getHelpText()}
+        content={message || ""}
+        style={{
+          fg: getMessageColor(),
+          attributes: message ? TextAttributes.BOLD : undefined,
+        }}
+      />
+      <text
+        content={helpText}
         style={{
           fg: "#888888",
-          attributes: TextAttributes.DIM,
         }}
       />
     </box>

@@ -2,7 +2,7 @@
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { NodeContext } from "@effect/platform-node"
-import { Effect, Layer } from "effect"
+import { Effect, Layer, Logger, LogLevel } from "effect"
 import {
   RepobaseEngine,
   RepobaseEngineLayer,
@@ -12,13 +12,19 @@ import {
 } from "@repobase/engine"
 import { App } from "./App.js"
 
-// Layer composition - same as CLI
+// Suppress logging in TUI mode to avoid interfering with the terminal UI
+const SilentLogger = Logger.minimumLogLevel(LogLevel.None)
+
+// Layer composition - same as CLI but with silent logging
 const EngineLive = RepobaseEngineLayer.pipe(
   Layer.provide(GitClientLayer),
   Layer.provide(RepoStoreLayer)
 )
 
-const MainLayer = EngineLive.pipe(Layer.provide(NodeContext.layer))
+const MainLayer = EngineLive.pipe(
+  Layer.provide(NodeContext.layer),
+  Layer.provide(SilentLogger)
+)
 
 // Helper to run Effect programs
 const runEffect = <A, E>(

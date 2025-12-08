@@ -1,20 +1,46 @@
-import { TextAttributes } from "@opentui/core"
+import { TextAttributes, type InputRenderable } from "@opentui/core"
+import { useRenderer } from "@opentui/react"
+import { useEffect, useRef } from "react"
+
+interface PasteEvent {
+  text: string
+  preventDefault: () => void
+}
 
 interface AddRepoModalProps {
   onSubmit: (url: string) => void
   onCancel: () => void
   onInput: (value: string) => void
+  value: string
 }
 
-export const AddRepoModal = ({ onSubmit, onCancel, onInput }: AddRepoModalProps) => {
+export const AddRepoModal = ({ onSubmit, onCancel, onInput, value }: AddRepoModalProps) => {
+  const renderer = useRenderer()
+  const inputRef = useRef<InputRenderable | null>(null)
+
+  // Listen for paste events on the renderer's keyInput
+  useEffect(() => {
+    const handlePaste = (event: PasteEvent) => {
+      // Insert pasted text at cursor position using InputRenderable's insertText
+      if (inputRef.current) {
+        inputRef.current.insertText(event.text)
+      }
+    }
+
+    renderer?.keyInput.on("paste", handlePaste)
+    return () => {
+      renderer?.keyInput.off("paste", handlePaste)
+    }
+  }, [renderer])
+
   return (
     <box
       style={{
         position: "absolute",
         top: "30%",
-        left: "20%",
-        width: "60%",
-        height: 7,
+        left: "10%",
+        width: "80%",
+        height: 8,
         backgroundColor: "#1a1a1a",
         borderStyle: "double",
         borderColor: "#00FF00",
@@ -40,6 +66,7 @@ export const AddRepoModal = ({ onSubmit, onCancel, onInput }: AddRepoModalProps)
         }}
       >
         <input
+          ref={(r: InputRenderable | null) => { inputRef.current = r }}
           placeholder="https://github.com/owner/repo"
           onInput={onInput}
           onSubmit={onSubmit}
@@ -49,6 +76,13 @@ export const AddRepoModal = ({ onSubmit, onCancel, onInput }: AddRepoModalProps)
           }}
         />
       </box>
+      <text
+        content="[Enter] Confirm  [Esc] Cancel  (Paste supported)"
+        style={{
+          fg: "#666666",
+          marginTop: 1,
+        }}
+      />
     </box>
   )
 }

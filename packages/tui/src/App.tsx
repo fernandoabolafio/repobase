@@ -174,6 +174,7 @@ export const App = ({
             setInputValue("")
           }}
           onInput={setInputValue}
+          value={inputValue}
         />
       )}
     </box>

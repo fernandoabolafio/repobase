@@ -2,7 +2,7 @@
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { NodeContext } from "@effect/platform-node"
-import { Effect, Layer, Logger, LogLevel, SubscriptionRef, Stream, Fiber } from "effect"
+import { Effect, Layer, SubscriptionRef, Stream, Fiber } from "effect"
 import {
   RepobaseEngine,
   RepobaseEngineLayer,
@@ -18,11 +18,12 @@ import {
   type AddRepoProgress,
 } from "@repobase/engine"
 import { App } from "./App.js"
+import { fileLoggerLayer, defaultLogPath } from "./file-logger.js"
 
-// Suppress logging in TUI mode to avoid interfering with the terminal UI
-const SilentLogger = Logger.minimumLogLevel(LogLevel.None)
+// File logger for debugging - writes to ~/.repobase/tui.log
+const FileLogger = fileLoggerLayer()
 
-// Layer composition - same as CLI but with silent logging
+// Layer composition with file-based logging
 const EngineLive = RepobaseEngineLayer.pipe(
   Layer.provide(GitClientLayer),
   Layer.provide(RepoStoreLayer),
@@ -33,7 +34,7 @@ const CloudSyncLive = CloudSyncLayer.pipe(Layer.provide(RepoStoreLayer))
 
 const MainLayer = Layer.mergeAll(EngineLive, CloudSyncLive).pipe(
   Layer.provide(NodeContext.layer),
-  Layer.provide(SilentLogger)
+  Layer.provide(FileLogger)
 )
 
 // Helper to run Effect programs
@@ -50,6 +51,9 @@ const { isConfigured: isCloudConfigured } = Effect.serviceFunctions(CloudSync)
 
 // Main entry point
 const main = async () => {
+  // Log startup to file
+  await runEffect(Effect.log(`TUI starting - logs written to ${defaultLogPath}`))
+  
   // Create the renderer
   const renderer = await createCliRenderer({
     exitOnCtrlC: true,

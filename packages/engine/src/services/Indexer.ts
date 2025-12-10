@@ -869,11 +869,14 @@ export const make = Effect.gen(function* () {
 
       if (!repo) {
         // List all repositories - get unique repo names
+        // Query all rows (with a high limit) to ensure we get all repos
         const results = yield* Effect.tryPromise({
           try: () =>
-            tbl.query().select(["repo"]).toArray() as Promise<
-              Array<{ repo: string }>
-            >,
+            tbl
+              .query()
+              .select(["repo", "path"])
+              .limit(10000) // High limit to get all repos
+              .toArray() as Promise<Array<{ repo: string; path: string }>>,
           catch: (e) =>
             new IndexError({ operation: "listFiles", message: `${e}` })
         })

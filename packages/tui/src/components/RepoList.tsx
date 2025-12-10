@@ -24,6 +24,21 @@ const formatStatus = (repo: RepoConfig): { text: string; color: string } => {
     : { text: "○ pending", color: colors.status.warning.default }
 }
 
+const formatCloudStatus = (repo: RepoConfig): string => {
+  if (!repo.cloudEnabled) return ""
+  
+  // Check if cloud is in sync with local
+  const localCommit = Option.getOrNull(repo.lastSyncedCommit)
+  const cloudCommit = repo.lastPushedCommit ? Option.getOrNull(repo.lastPushedCommit) : null
+  
+  if (localCommit && cloudCommit && localCommit === cloudCommit) {
+    return "☁️"
+  } else if (repo.cloudEnabled) {
+    return "☁️↑"
+  }
+  return ""
+}
+
 export const RepoList = ({ repos, selectedIndex }: RepoListProps) => {
   if (repos.length === 0) {
     return (
@@ -73,6 +88,7 @@ export const RepoList = ({ repos, selectedIndex }: RepoListProps) => {
           const isSelected = index === selectedIndex
           const status = formatStatus(repo)
           const mode = formatMode(repo)
+          const cloudStatus = formatCloudStatus(repo)
           const prefix = isSelected ? "> " : "  "
 
           return (
@@ -85,7 +101,7 @@ export const RepoList = ({ repos, selectedIndex }: RepoListProps) => {
               }}
             >
               <text
-                content={`${prefix}${repo.id.padEnd(24)} ${mode.padEnd(18)} ${status.text}`}
+                content={`${prefix}${repo.id.padEnd(24)} ${mode.padEnd(18)} ${status.text.padEnd(12)} ${cloudStatus}`}
                 style={{
                   fg: isSelected ? colors.text.primary : colors.interactive.default,
                   attributes: isSelected ? TextAttributes.BOLD : undefined,

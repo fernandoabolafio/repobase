@@ -46,6 +46,19 @@ export class SearchError extends Data.TaggedError("SearchError")<{
 }> {}
 
 /**
+ * Error from cloud sync operations
+ */
+export class CloudError extends Data.TaggedError("CloudError")<{
+  readonly operation: string
+  readonly message: string
+}> {}
+
+/**
+ * Cloud sync not configured
+ */
+export class CloudNotConfiguredError extends Data.TaggedError("CloudNotConfiguredError")<{}> {}
+
+/**
  * Union of all engine errors
  */
 export type EngineError =
@@ -55,3 +68,5 @@ export type EngineError =
   | RepoAlreadyExistsError
   | IndexError
   | SearchError
+  | CloudError
+  | CloudNotConfiguredError

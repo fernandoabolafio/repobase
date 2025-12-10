@@ -5,9 +5,11 @@ interface StatusBarProps {
   mode: "list" | "add" | "syncing" | "search" | "results" | "adding" | "confirmDelete"
   message?: string
   mcpServerRunning?: boolean
+  cloudConfigured?: boolean
+  cloudPendingCount?: number
 }
 
-export const StatusBar = ({ mode, message, mcpServerRunning }: StatusBarProps) => {
+export const StatusBar = ({ mode, message, mcpServerRunning, cloudConfigured, cloudPendingCount }: StatusBarProps) => {
   const getHelpText = () => {
     if (mode === "add" || mode === "search" || mode === "confirmDelete") {
       return "" // Help text shown in modal
@@ -31,6 +33,19 @@ export const StatusBar = ({ mode, message, mcpServerRunning }: StatusBarProps) =
   const helpText = getHelpText()
   const mcpStatus = mcpServerRunning ? "MCP: ●" : "MCP: ○"
   const mcpColor = mcpServerRunning ? colors.status.success.default : colors.text.secondary
+  
+  // Cloud sync status
+  const getCloudStatus = () => {
+    if (!cloudConfigured) return "☁️ ○"
+    if (cloudPendingCount && cloudPendingCount > 0) return `☁️ ${cloudPendingCount}↑`
+    return "☁️ ✓"
+  }
+  const cloudStatus = getCloudStatus()
+  const cloudColor = !cloudConfigured 
+    ? colors.text.secondary 
+    : (cloudPendingCount && cloudPendingCount > 0) 
+      ? colors.status.warning.default 
+      : colors.status.success.default
 
   return (
     <box
@@ -56,6 +71,12 @@ export const StatusBar = ({ mode, message, mcpServerRunning }: StatusBarProps) =
           content={mcpStatus}
           style={{
             fg: mcpColor,
+          }}
+        />
+        <text
+          content={cloudStatus}
+          style={{
+            fg: cloudColor,
           }}
         />
       </box>

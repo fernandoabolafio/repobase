@@ -17,6 +17,7 @@ interface AppProps {
   onRefreshRepos: () => Promise<RepoConfig[]>
   onSearch: (query: string, mode: SearchMode) => Promise<SearchResult[]>
   onQuit: () => void
+  cloudConfigured?: boolean
 }
 
 export const App = ({
@@ -28,6 +29,7 @@ export const App = ({
   onRefreshRepos,
   onSearch,
   onQuit,
+  cloudConfigured = false,
 }: AppProps) => {
   const [repos, setRepos] = useState<RepoConfig[]>(initialRepos)
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -298,7 +300,21 @@ export const App = ({
     >
       <Header version="0.1.0" />
       <RepoList repos={repos} selectedIndex={selectedIndex} />
-      <StatusBar mode={mode} message={message} mcpServerRunning={mcpServerRunning} />
+      <StatusBar 
+        mode={mode} 
+        message={message} 
+        mcpServerRunning={mcpServerRunning}
+        cloudConfigured={cloudConfigured}
+        cloudPendingCount={repos.filter(r => {
+          if (!r.cloudEnabled) return false
+          const localCommit = r.lastSyncedCommit ? r.lastSyncedCommit : null
+          const cloudCommit = r.lastPushedCommit ? r.lastPushedCommit : null
+          // Pending if cloud enabled but commits don't match
+          if (localCommit === null) return false
+          if (cloudCommit === null) return true
+          return localCommit !== cloudCommit
+        }).length}
+      />
       
       {mode === "add" && (
         <AddRepoModal

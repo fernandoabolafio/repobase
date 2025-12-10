@@ -9,6 +9,8 @@ import {
   GitClientLayer,
   RepoStoreLayer,
   IndexerLayer,
+  CloudSync,
+  CloudSyncLayer,
   initialProgress,
   type RepoConfig,
   type SearchMode,
@@ -27,20 +29,24 @@ const EngineLive = RepobaseEngineLayer.pipe(
   Layer.provide(IndexerLayer)
 )
 
-const MainLayer = EngineLive.pipe(
+const CloudSyncLive = CloudSyncLayer.pipe(Layer.provide(RepoStoreLayer))
+
+const MainLayer = Layer.mergeAll(EngineLive, CloudSyncLive).pipe(
   Layer.provide(NodeContext.layer),
   Layer.provide(SilentLogger)
 )
 
 // Helper to run Effect programs
 const runEffect = <A, E>(
-  effect: Effect.Effect<A, E, RepobaseEngine>
+  effect: Effect.Effect<A, E, RepobaseEngine | CloudSync>
 ): Promise<A> =>
   Effect.runPromise(effect.pipe(Effect.provide(MainLayer))) as Promise<A>
 
 // Engine service functions
 const { addRepo, removeRepo, listRepos, syncRepo, syncAll, search } =
   Effect.serviceFunctions(RepobaseEngine)
+
+const { isConfigured: isCloudConfigured } = Effect.serviceFunctions(CloudSync)
 
 // Main entry point
 const main = async () => {
@@ -49,8 +55,9 @@ const main = async () => {
     exitOnCtrlC: true,
   })
 
-  // Load initial repos
+  // Load initial repos and check cloud config
   const initialRepos = await runEffect(listRepos())
+  const cloudConfigured = await runEffect(isCloudConfigured())
 
   // Render the app
   createRoot(renderer).render(
@@ -99,6 +106,7 @@ const main = async () => {
       onQuit={() => {
         process.exit(0)
       }}
+      cloudConfigured={cloudConfigured}
     />
   )
 }

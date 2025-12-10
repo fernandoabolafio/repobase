@@ -31,6 +31,8 @@ export {
   CloudNotConfiguredError,
   RepoNotFoundError,
   RepoAlreadyExistsError,
+  FileNotFoundError,
+  InvalidPatternError,
   type EngineError
 } from "./errors.js"
 
@@ -46,7 +48,15 @@ export {
   type SearchMode,
   type IndexOptions,
   type IndexingProgress,
-  initialIndexingProgress
+  initialIndexingProgress,
+  type FileInfo,
+  type FileContent,
+  type GrepMatch,
+  type GrepResult,
+  type ListFilesOptions,
+  type GlobOptions,
+  type ReadFileOptions,
+  type GrepOptions
 } from "./services/Indexer.js"
 export {
   RepobaseEngine,

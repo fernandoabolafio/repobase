@@ -1,6 +1,6 @@
 import { FileSystem } from "@effect/platform"
 import { Context, Effect, Layer, Option, SubscriptionRef } from "effect"
-import { IndexError, SearchError } from "../errors.js"
+import { IndexError, SearchError, FileNotFoundError, InvalidPatternError } from "../errors.js"
 import type { FileChange } from "./GitClient.js"
 import * as os from "os"
 import * as crypto from "crypto"
@@ -122,6 +122,89 @@ export interface IndexOptions {
 }
 
 /**
+ * Information about a file or directory in the index
+ */
+export interface FileInfo {
+  readonly repo: string
+  readonly path: string
+  readonly filename: string
+  readonly isDirectory: boolean
+  readonly size?: number
+  readonly mtime?: Date
+}
+
+/**
+ * File content with line range metadata
+ */
+export interface FileContent {
+  readonly repo: string
+  readonly path: string
+  readonly content: string
+  readonly totalLines: number
+  readonly startLine: number
+  readonly endLine: number
+}
+
+/**
+ * A single grep match within a file (repo/path are in GrepResult)
+ */
+export interface GrepMatch {
+  readonly lineNumber: number
+  readonly content: string
+  readonly isMatch: boolean // true for match lines, false for context lines
+}
+
+/**
+ * Grep results for a single file
+ */
+export interface GrepResult {
+  readonly repo: string
+  readonly path: string
+  readonly matches: readonly GrepMatch[]
+  readonly matchCount: number
+}
+
+/**
+ * Options for listing files
+ */
+export interface ListFilesOptions {
+  readonly repo?: string
+  readonly path?: string
+  readonly ignore?: readonly string[]
+}
+
+/**
+ * Options for glob file search
+ */
+export interface GlobOptions {
+  readonly repo?: string
+  readonly limit?: number
+}
+
+/**
+ * Options for reading files
+ */
+export interface ReadFileOptions {
+  readonly offset?: number // Start line (1-based, default: 1)
+  readonly limit?: number // Number of lines to read
+  readonly lineNumbers?: boolean // Include line numbers (default: true)
+}
+
+/**
+ * Options for grep pattern search
+ */
+export interface GrepOptions {
+  readonly repo?: string
+  readonly ignoreCase?: boolean
+  readonly contextBefore?: number // Lines before match (-B)
+  readonly contextAfter?: number // Lines after match (-A)
+  readonly filesWithMatches?: boolean // Only show filenames
+  readonly count?: boolean // Only show match counts
+  readonly fileType?: string // Filter by extension (e.g., "ts")
+  readonly limit?: number // Limit output lines
+}
+
+/**
  * Indexer service interface
  */
 export interface IndexerService {
@@ -151,6 +234,28 @@ export interface IndexerService {
     query: string,
     options?: SearchOptions
   ) => Effect.Effect<SearchResult[], SearchError>
+
+  // File exploration - Discovery (DB queries)
+  readonly listFiles: (
+    options: ListFilesOptions
+  ) => Effect.Effect<readonly FileInfo[], IndexError>
+
+  readonly globFiles: (
+    pattern: string,
+    options?: GlobOptions
+  ) => Effect.Effect<readonly FileInfo[], IndexError | InvalidPatternError>
+
+  // File exploration - Content (DB verify + FS read)
+  readonly readFile: (
+    repo: string,
+    filePath: string,
+    options?: ReadFileOptions
+  ) => Effect.Effect<FileContent, IndexError | FileNotFoundError>
+
+  readonly grepPattern: (
+    pattern: string,
+    options?: GrepOptions
+  ) => Effect.Effect<readonly GrepResult[], IndexError | InvalidPatternError>
 }
 
 /**
@@ -214,6 +319,26 @@ function extractSnippet(
     contents.slice(start, end) +
     (end < contents.length ? "..." : "")
   )
+}
+
+/**
+ * Get the repos directory path
+ */
+const getReposDir = () => `${os.homedir()}/.repobase/repos`
+
+/**
+ * Validate that a file path doesn't escape the repo directory
+ */
+function validatePath(filePath: string): Effect.Effect<void, IndexError> {
+  if (filePath.includes("..") || filePath.startsWith("/")) {
+    return Effect.fail(
+      new IndexError({
+        operation: "validatePath",
+        message: `Invalid path: ${filePath}`
+      })
+    )
+  }
+  return Effect.void
 }
 
 /**
@@ -736,13 +861,369 @@ export const make = Effect.gen(function* () {
       }))
     })
 
+  // List files and directories in a repository path
+  const listFiles: IndexerService["listFiles"] = (options) =>
+    Effect.gen(function* () {
+      const tbl = yield* getTable
+      const { repo, path: dirPath = "" } = options
+
+      if (!repo) {
+        // List all repositories - get unique repo names
+        const results = yield* Effect.tryPromise({
+          try: () =>
+            tbl.query().select(["repo"]).toArray() as Promise<
+              Array<{ repo: string }>
+            >,
+          catch: (e) =>
+            new IndexError({ operation: "listFiles", message: `${e}` })
+        })
+
+        const uniqueRepos = [...new Set(results.map((r) => r.repo))]
+        return uniqueRepos.map(
+          (r): FileInfo => ({
+            repo: r,
+            path: "",
+            filename: r,
+            isDirectory: true
+          })
+        )
+      }
+
+      // Validate directory path
+      if (dirPath) {
+        yield* validatePath(dirPath)
+      }
+
+      // Query files in this repo starting with the path prefix
+      const searchPath = dirPath ? `${dirPath}/` : ""
+      const results = yield* Effect.tryPromise({
+        try: () =>
+          tbl
+            .query()
+            .where(`repo = '${repo}' AND path LIKE '${searchPath}%'`)
+            .select(["path", "filename", "size_bytes", "mtime_ms"])
+            .toArray() as Promise<
+            Array<{
+              path: string
+              filename: string
+              size_bytes: number
+              mtime_ms: number
+            }>
+          >,
+        catch: (e) => new IndexError({ operation: "listFiles", message: `${e}` })
+      })
+
+      // Extract immediate children (files and subdirectories)
+      const entries = new Map<string, FileInfo>()
+
+      for (const file of results) {
+        let relativePath = file.path
+        if (dirPath && file.path.startsWith(searchPath)) {
+          relativePath = file.path.slice(searchPath.length)
+        }
+
+        const slashIndex = relativePath.indexOf("/")
+        if (slashIndex === -1) {
+          // Direct file in this directory
+          entries.set(relativePath, {
+            repo,
+            path: file.path,
+            filename: relativePath,
+            isDirectory: false,
+            size: file.size_bytes,
+            mtime: new Date(file.mtime_ms)
+          })
+        } else {
+          // Subdirectory - only add if not already present
+          const subdir = relativePath.slice(0, slashIndex)
+          if (!entries.has(subdir)) {
+            entries.set(subdir, {
+              repo,
+              path: dirPath ? `${dirPath}/${subdir}` : subdir,
+              filename: subdir,
+              isDirectory: true
+            })
+          }
+        }
+      }
+
+      // Sort: directories first, then alphabetically
+      return [...entries.values()].sort((a, b) => {
+        if (a.isDirectory !== b.isDirectory) return a.isDirectory ? -1 : 1
+        return a.filename.localeCompare(b.filename)
+      })
+    })
+
+  // Find files matching a glob pattern
+  const globFiles: IndexerService["globFiles"] = (pattern, options) =>
+    Effect.gen(function* () {
+      const tbl = yield* getTable
+      const limit = options?.limit ?? 100
+
+      // Import micromatch for proper glob matching
+      const micromatch = yield* Effect.tryPromise({
+        try: () => import("micromatch"),
+        catch: (e) =>
+          new InvalidPatternError({
+            pattern,
+            message: `Failed to import micromatch: ${e}`
+          })
+      })
+
+      // Query all files (or filtered by repo)
+      let query = tbl.query()
+
+      if (options?.repo) {
+        query = query.where(`repo = '${options.repo}'`)
+      }
+
+      const allFiles = yield* Effect.tryPromise({
+        try: () =>
+          query
+            .select(["repo", "path", "filename", "size_bytes", "mtime_ms"])
+            .toArray() as Promise<
+            Array<{
+              repo: string
+              path: string
+              filename: string
+              size_bytes: number
+              mtime_ms: number
+            }>
+          >,
+        catch: (e) => new IndexError({ operation: "globFiles", message: `${e}` })
+      })
+
+      // Apply glob pattern matching
+      const matched = allFiles.filter((file) => {
+        return (
+          micromatch.isMatch(file.path, pattern) ||
+          micromatch.isMatch(file.filename, pattern)
+        )
+      })
+
+      // Limit results
+      const limited = matched.slice(0, limit)
+
+      return limited.map(
+        (r): FileInfo => ({
+          repo: r.repo,
+          path: r.path,
+          filename: r.filename,
+          isDirectory: false,
+          size: r.size_bytes,
+          mtime: new Date(r.mtime_ms)
+        })
+      )
+    })
+
+  // Read file contents from disk
+  const readFile: IndexerService["readFile"] = (repo, filePath, options) =>
+    Effect.gen(function* () {
+      const tbl = yield* getTable
+
+      // Validate path
+      yield* validatePath(filePath)
+
+      // Verify file exists in index
+      const indexed = yield* Effect.tryPromise({
+        try: () =>
+          tbl
+            .query()
+            .where(`repo = '${repo}' AND path = '${filePath}'`)
+            .select(["path"])
+            .limit(1)
+            .toArray() as Promise<Array<{ path: string }>>,
+        catch: (e) => new IndexError({ operation: "readFile", message: `${e}` })
+      })
+
+      if (indexed.length === 0) {
+        return yield* Effect.fail(
+          new FileNotFoundError({
+            repo,
+            path: filePath
+          })
+        )
+      }
+
+      // Read from disk
+      const absolutePath = `${getReposDir()}/${repo}/${filePath}`
+      const content = yield* fs.readFileString(absolutePath).pipe(
+        Effect.mapError(
+          () =>
+            new FileNotFoundError({
+              repo,
+              path: filePath
+            })
+        )
+      )
+
+      const lines = content.split("\n")
+      const totalLines = lines.length
+      const offset = Math.max(1, options?.offset ?? 1)
+      const limit = options?.limit ?? totalLines
+
+      const startLine = offset
+      const endLine = Math.min(totalLines, offset + limit - 1)
+
+      // Extract requested lines
+      const selectedLines = lines.slice(startLine - 1, endLine)
+
+      // Optionally format with line numbers
+      const outputContent =
+        options?.lineNumbers !== false
+          ? selectedLines
+              .map((line, i) => `${String(startLine + i).padStart(6)}|${line}`)
+              .join("\n")
+          : selectedLines.join("\n")
+
+      return {
+        repo,
+        path: filePath,
+        content: outputContent,
+        totalLines,
+        startLine,
+        endLine
+      }
+    })
+
+  // Grep pattern search with context support
+  const grepPattern: IndexerService["grepPattern"] = (pattern, options) =>
+    Effect.gen(function* () {
+      const tbl = yield* getTable
+
+      // Build regex - validate pattern first
+      const flags = options?.ignoreCase ? "gi" : "g"
+      let regex: RegExp
+      try {
+        regex = new RegExp(pattern, flags)
+      } catch (e) {
+        return yield* Effect.fail(
+          new InvalidPatternError({
+            pattern,
+            message: e instanceof Error ? e.message : String(e)
+          })
+        )
+      }
+
+      // Query indexed files
+      let query = tbl.query()
+
+      if (options?.repo) {
+        query = query.where(`repo = '${options.repo}'`)
+      }
+
+      if (options?.fileType) {
+        query = query.where(`filename LIKE '%.${options.fileType}'`)
+      }
+
+      const files = yield* Effect.tryPromise({
+        try: () =>
+          query.select(["repo", "path", "filename"]).toArray() as Promise<
+            Array<{ repo: string; path: string; filename: string }>
+          >,
+        catch: (e) =>
+          new IndexError({ operation: "grepPattern", message: `${e}` })
+      })
+
+      const results: GrepResult[] = []
+      let outputCount = 0
+      const limit = options?.limit ?? Number.MAX_SAFE_INTEGER
+
+      const contextBefore = options?.contextBefore ?? 0
+      const contextAfter = options?.contextAfter ?? 0
+
+      for (const file of files) {
+        if (outputCount >= limit) break
+
+        const absolutePath = `${getReposDir()}/${file.repo}/${file.path}`
+        const contentResult = yield* fs.readFileString(absolutePath).pipe(
+          Effect.option,
+          Effect.catchAll(() => Effect.succeed(Option.none()))
+        )
+
+        if (Option.isNone(contentResult)) continue
+
+        const lines = contentResult.value.split("\n")
+        const matchingLineNums = new Set<number>()
+
+        // Find all matching lines
+        for (let i = 0; i < lines.length; i++) {
+          if (regex.test(lines[i])) {
+            matchingLineNums.add(i)
+          }
+          regex.lastIndex = 0 // Reset for global regex
+        }
+
+        if (matchingLineNums.size === 0) continue
+
+        if (options?.filesWithMatches) {
+          results.push({
+            repo: file.repo,
+            path: file.path,
+            matches: [],
+            matchCount: matchingLineNums.size
+          })
+          outputCount++
+          continue
+        }
+
+        if (options?.count) {
+          results.push({
+            repo: file.repo,
+            path: file.path,
+            matches: [],
+            matchCount: matchingLineNums.size
+          })
+          continue
+        }
+
+        // Build matches with context
+        const linesToShow = new Set<number>()
+        for (const matchLine of matchingLineNums) {
+          for (
+            let i = Math.max(0, matchLine - contextBefore);
+            i <= Math.min(lines.length - 1, matchLine + contextAfter);
+            i++
+          ) {
+            linesToShow.add(i)
+          }
+        }
+
+        const matches: GrepMatch[] = []
+        const sortedLines = [...linesToShow].sort((a, b) => a - b)
+
+        for (const lineNum of sortedLines) {
+          matches.push({
+            lineNumber: lineNum + 1,
+            content: lines[lineNum],
+            isMatch: matchingLineNums.has(lineNum)
+          })
+          outputCount++
+          if (outputCount >= limit) break
+        }
+
+        results.push({
+          repo: file.repo,
+          path: file.path,
+          matches,
+          matchCount: matchingLineNums.size
+        })
+      }
+
+      return results
+    })
+
   return Indexer.of({
     indexRepo,
     indexChanges,
     removeIndex,
     searchKeyword,
     searchSemantic,
-    searchHybrid
+    searchHybrid,
+    listFiles,
+    globFiles,
+    readFile,
+    grepPattern
   })
 })
 

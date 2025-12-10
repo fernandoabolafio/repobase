@@ -59,6 +59,22 @@ export class CloudError extends Data.TaggedError("CloudError")<{
 export class CloudNotConfiguredError extends Data.TaggedError("CloudNotConfiguredError")<{}> {}
 
 /**
+ * File not found in index or on disk
+ */
+export class FileNotFoundError extends Data.TaggedError("FileNotFoundError")<{
+  readonly repo: string
+  readonly path: string
+}> {}
+
+/**
+ * Invalid pattern (e.g., malformed regex or glob)
+ */
+export class InvalidPatternError extends Data.TaggedError("InvalidPatternError")<{
+  readonly pattern: string
+  readonly message: string
+}> {}
+
+/**
  * Union of all engine errors
  */
 export type EngineError =
@@ -70,3 +86,5 @@ export type EngineError =
   | SearchError
   | CloudError
   | CloudNotConfiguredError
+  | FileNotFoundError
+  | InvalidPatternError

@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": ["packages/*"],
+  "scripts": {
+    "cli": "bun run --cwd packages/cli start",
+    "repobase": "bun run --cwd packages/cli start",
+    "tui": "bun run --cwd packages/tui start"
+  },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "typescript": "^5.9.3"

@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/fernandoabolafio/repobase/compare/v1.0.0...v1.0.1) (2025-12-13)
+
+### Bug Fixes
+
+* **ci:** add missing permissions and remove branches override ([716c7fb](https://github.com/fernandoabolafio/repobase/commit/716c7fb18e6abf8ec11b6b3e126e81124291b9d5))
+* **ci:** simplify semantic-release config for main branch releases ([df68f90](https://github.com/fernandoabolafio/repobase/commit/df68f90d29b57757a73d8b9f642245ea9c524741))
+
 ## 1.0.0 (2025-12-13)
 
 ### Features

@@ -95,6 +95,9 @@ const createTestRepo = (id: string, overrides: Partial<RepoConfig> = {}): RepoCo
   lastSyncedCommit: Option.none(),
   lastSyncedAt: Option.none(),
   addedAt: new Date(),
+  cloudEnabled: false,
+  lastPushedAt: Option.none(),
+  lastPushedCommit: Option.none(),
   ...overrides
 })
 
@@ -133,7 +136,9 @@ describe("RepoStore", () => {
                   mode: { _tag: "tracking", branch: "main" },
                   lastSyncedCommit: null,
                   lastSyncedAt: null,
-                  addedAt: Date.now()
+                  addedAt: Date.now(),
+                  lastPushedAt: null,
+                  lastPushedCommit: null
                 }
               ]
             })

@@ -1,9 +1,11 @@
 {
   "name": "repobase",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Index and search your repositories with AI. Includes TUI and MCP server.",
   "type": "module",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "bin": {
     "repobase": "./dist/bin/repobase.js",
     "repobase-mcp": "./dist/bin/repobase-mcp.js"

@@ -23,6 +23,8 @@ permissions:
   contents: write
   packages: write
   id-token: write
+  issues: write
+  pull-requests: write
 
 jobs:
   test:
@@ -54,7 +56,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -76,7 +78,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release --branches main --dry-run false
+        run: npx semantic-release
 
   promote-to-latest:
     name: Promote to Latest
@@ -87,7 +89,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -146,8 +148,6 @@ jobs:
             --latest
 
       - name: Commit version bump
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -155,5 +155,3 @@ jobs:
           git commit -m "chore(release): v${{ steps.get-version.outputs.base_version }}" || true
           git tag "v${{ steps.get-version.outputs.base_version }}"
           git push origin main --tags
-
-

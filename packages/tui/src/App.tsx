@@ -4,7 +4,7 @@ import { initialProgress } from "@repobase/engine"
 import { useCallback, useState } from "react"
 import { Header, RepoList, StatusBar, AddRepoModal, SearchModal, SearchResults, ProgressModal, ConfirmDialog } from "./components/index.js"
 import { colors } from "./theme/index.js"
-import { startMcpServer, stopMcpServer, isMcpServerRunning } from "./mcp-process.js"
+import { featureFlags } from "./config.js"
 
 type AppMode = "list" | "add" | "syncing" | "search" | "results" | "adding" | "confirmDelete"
 
@@ -45,9 +45,6 @@ export const App = ({
   const [searchMode, setSearchMode] = useState<SearchMode>("hybrid")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [searchResultIndex, setSearchResultIndex] = useState(0)
-  
-  // MCP server state
-  const [mcpServerRunning, setMcpServerRunning] = useState(() => isMcpServerRunning())
   
   // Delete confirmation state
   const [repoToDelete, setRepoToDelete] = useState<RepoConfig | null>(null)
@@ -195,26 +192,6 @@ export const App = ({
     setSearchResultIndex(0)
   }, [])
 
-  const handleToggleMcpServer = useCallback(() => {
-    if (mcpServerRunning) {
-      const stopped = stopMcpServer()
-      if (stopped) {
-        setMcpServerRunning(false)
-        showMessage("MCP server stopped")
-      } else {
-        showMessage("Error: Failed to stop MCP server")
-      }
-    } else {
-      const started = startMcpServer()
-      if (started) {
-        setMcpServerRunning(true)
-        showMessage("MCP server started")
-      } else {
-        showMessage("Error: Failed to start MCP server")
-      }
-    }
-  }, [mcpServerRunning, showMessage])
-
   useKeyboard((key) => {
     // Handle escape/quit in any mode
     if (key.name === "escape" || (key.name === "q" && mode === "list")) {
@@ -259,9 +236,6 @@ export const App = ({
       case "/":
         setMode("search")
         break
-      case "m":
-        handleToggleMcpServer()
-        break
     }
   })
 
@@ -303,9 +277,9 @@ export const App = ({
       <StatusBar 
         mode={mode} 
         message={message} 
-        mcpServerRunning={mcpServerRunning}
-        cloudConfigured={cloudConfigured}
-        cloudPendingCount={repos.filter(r => {
+        mcpServerRunning={false}
+        cloudConfigured={featureFlags.cloudSync ? cloudConfigured : false}
+        cloudPendingCount={featureFlags.cloudSync ? repos.filter(r => {
           if (!r.cloudEnabled) return false
           const localCommit = r.lastSyncedCommit ? r.lastSyncedCommit : null
           const cloudCommit = r.lastPushedCommit ? r.lastPushedCommit : null
@@ -313,7 +287,7 @@ export const App = ({
           if (localCommit === null) return false
           if (cloudCommit === null) return true
           return localCommit !== cloudCommit
-        }).length}
+        }).length : 0}
       />
       
       {mode === "add" && (

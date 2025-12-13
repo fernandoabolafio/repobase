@@ -1,5 +1,6 @@
 import { TextAttributes } from "@opentui/core"
 import { colors } from "../theme/index.js"
+import { featureFlags } from "../config.js"
 
 interface StatusBarProps {
   mode: "list" | "add" | "syncing" | "search" | "results" | "adding" | "confirmDelete"
@@ -20,7 +21,7 @@ export const StatusBar = ({ mode, message, mcpServerRunning, cloudConfigured, cl
     if (mode === "results") {
       return "[Esc] Back"
     }
-    return "[a] Add  [d] Delete  [s] Sync  [S] Sync All  [/] Search  [m] MCP  [q] Quit"
+    return "[a] Add  [d] Delete  [s] Sync  [S] Sync All  [/] Search  [q] Quit"
   }
 
   const getMessageColor = () => {
@@ -31,10 +32,12 @@ export const StatusBar = ({ mode, message, mcpServerRunning, cloudConfigured, cl
   }
 
   const helpText = getHelpText()
+  
+  // MCP server status (only shown if feature flag enabled)
   const mcpStatus = mcpServerRunning ? "MCP: ●" : "MCP: ○"
   const mcpColor = mcpServerRunning ? colors.status.success.default : colors.text.secondary
   
-  // Cloud sync status
+  // Cloud sync status (only shown if feature flag enabled)
   const getCloudStatus = () => {
     if (!cloudConfigured) return "☁️ ○"
     if (cloudPendingCount && cloudPendingCount > 0) return `☁️ ${cloudPendingCount}↑`
@@ -67,18 +70,22 @@ export const StatusBar = ({ mode, message, mcpServerRunning, cloudConfigured, cl
             attributes: message ? TextAttributes.BOLD : undefined,
           }}
         />
-        <text
-          content={mcpStatus}
-          style={{
-            fg: mcpColor,
-          }}
-        />
-        <text
-          content={cloudStatus}
-          style={{
-            fg: cloudColor,
-          }}
-        />
+        {featureFlags.mcpServerToggle && (
+          <text
+            content={mcpStatus}
+            style={{
+              fg: mcpColor,
+            }}
+          />
+        )}
+        {featureFlags.cloudSync && (
+          <text
+            content={cloudStatus}
+            style={{
+              fg: cloudColor,
+            }}
+          />
+        )}
       </box>
       <text
         content={helpText}

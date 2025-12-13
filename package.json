@@ -1,15 +1,59 @@
 {
   "name": "repobase",
-  "version": "1.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Index and search your repositories with AI. Includes TUI and MCP server.",
+  "type": "module",
   "workspaces": ["packages/*"],
+  "bin": {
+    "repobase": "./dist/bin/repobase.js",
+    "repobase-mcp": "./dist/bin/repobase-mcp.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
-    "cli": "bun run --cwd packages/cli start",
-    "repobase": "bun run --cwd packages/cli start",
-    "tui": "bun run --cwd packages/tui start"
+    "build": "bun run scripts/build.ts",
+    "dev:tui": "bun run --cwd packages/tui start",
+    "dev:mcp": "bun run --cwd packages/mcp-server start",
+    "test": "bun run --cwd packages/engine test",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "repository",
+    "search",
+    "semantic-search",
+    "tui",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fernandoabolafio/repobase.git"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "dependencies": {
+    "@effect/platform": "^0.93.6",
+    "@effect/platform-node": "^0.103.0",
+    "@lancedb/lancedb": "^0.15.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@opentui/core": "^0.1.0",
+    "@opentui/react": "^0.1.0",
+    "@xenova/transformers": "^2.17.2",
+    "effect": "^3.19.9",
+    "fast-glob": "^3.3.3",
+    "micromatch": "^4.0.5",
+    "react": "^19.0.0",
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@types/react": "^19.0.0",
     "typescript": "^5.9.3"
   }
 }

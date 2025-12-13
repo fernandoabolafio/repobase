@@ -72,7 +72,7 @@ export const App = ({
       setRepos(updatedRepos)
       // Keep showing progress modal with complete state for a moment
       setTimeout(() => {
-        showMessage(`✓ Added repository`)
+        showMessage(`[OK] Added repository`)
         setMode("list")
       }, 500)
     } catch (error) {
@@ -110,7 +110,7 @@ export const App = ({
       const updatedRepos = await onRefreshRepos()
       setRepos(updatedRepos)
       setSelectedIndex(Math.max(0, selectedIndex - 1))
-      showMessage(`✓ Removed ${repoToDelete.id}`)
+      showMessage(`[OK] Removed ${repoToDelete.id}`)
     } catch (error) {
       showMessage(`Error: ${error instanceof Error ? error.message : "Failed to remove"}`)
     }
@@ -135,7 +135,7 @@ export const App = ({
       const result = await onSyncRepo(repo.id)
       const updatedRepos = await onRefreshRepos()
       setRepos(updatedRepos)
-      showMessage(result.updated ? `✓ ${repo.id} updated` : `${repo.id} already up to date`)
+      showMessage(result.updated ? `[OK] ${repo.id} updated` : `${repo.id} already up to date`)
     } catch (error) {
       showMessage(`Error: ${error instanceof Error ? error.message : "Failed to sync"}`)
     }
@@ -152,7 +152,7 @@ export const App = ({
       const updatedRepos = await onRefreshRepos()
       setRepos(updatedRepos)
       const updatedCount = results.filter(r => r.updated).length
-      showMessage(`✓ Synced ${results.length} repos (${updatedCount} updated)`)
+      showMessage(`[OK] Synced ${results.length} repos (${updatedCount} updated)`)
     } catch (error) {
       showMessage(`Error: ${error instanceof Error ? error.message : "Failed to sync"}`)
     }

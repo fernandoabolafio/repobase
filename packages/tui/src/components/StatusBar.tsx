@@ -27,21 +27,21 @@ export const StatusBar = ({ mode, message, mcpServerRunning, cloudConfigured, cl
   const getMessageColor = () => {
     if (!message) return colors.text.secondary
     if (message.startsWith("Error")) return colors.status.error.default
-    if (message.startsWith("✓")) return colors.status.success.default
+    if (message.startsWith("[OK]")) return colors.status.success.default
     return colors.status.warning.default
   }
 
   const helpText = getHelpText()
   
   // MCP server status (only shown if feature flag enabled)
-  const mcpStatus = mcpServerRunning ? "MCP: ●" : "MCP: ○"
+  const mcpStatus = mcpServerRunning ? "MCP: *" : "MCP: o"
   const mcpColor = mcpServerRunning ? colors.status.success.default : colors.text.secondary
   
   // Cloud sync status (only shown if feature flag enabled)
   const getCloudStatus = () => {
-    if (!cloudConfigured) return "☁️ ○"
-    if (cloudPendingCount && cloudPendingCount > 0) return `☁️ ${cloudPendingCount}↑`
-    return "☁️ ✓"
+    if (!cloudConfigured) return "Cloud: o"
+    if (cloudPendingCount && cloudPendingCount > 0) return `Cloud: ${cloudPendingCount}^`
+    return "Cloud: ok"
   }
   const cloudStatus = getCloudStatus()
   const cloudColor = !cloudConfigured 

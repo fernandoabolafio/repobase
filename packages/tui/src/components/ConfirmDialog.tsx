@@ -38,7 +38,7 @@ export const ConfirmDialog = ({ message, onConfirm, onCancel }: ConfirmDialogPro
       }}
     >
       <text
-        content="⚠ Confirm Delete"
+        content="! Confirm Delete"
         style={{
           fg: colors.status.error.default,
           attributes: TextAttributes.BOLD,

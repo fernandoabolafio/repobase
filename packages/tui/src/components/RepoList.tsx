@@ -17,11 +17,11 @@ const formatMode = (repo: RepoConfig): string => {
 
 const formatStatus = (repo: RepoConfig): { text: string; color: string } => {
   if (repo.mode._tag === "pinned") {
-    return { text: "○ pinned", color: colors.text.secondary }
+    return { text: "o pinned", color: colors.text.secondary }
   }
   return Option.isSome(repo.lastSyncedCommit)
-    ? { text: "✓ synced", color: colors.status.success.default }
-    : { text: "○ pending", color: colors.status.warning.default }
+    ? { text: "+ synced", color: colors.status.success.default }
+    : { text: "o pending", color: colors.status.warning.default }
 }
 
 const formatCloudStatus = (repo: RepoConfig): string => {
@@ -32,9 +32,9 @@ const formatCloudStatus = (repo: RepoConfig): string => {
   const cloudCommit = repo.lastPushedCommit ? Option.getOrNull(repo.lastPushedCommit) : null
   
   if (localCommit && cloudCommit && localCommit === cloudCommit) {
-    return "☁️"
+    return "[C]"
   } else if (repo.cloudEnabled) {
-    return "☁️↑"
+    return "[C^]"
   }
   return ""
 }

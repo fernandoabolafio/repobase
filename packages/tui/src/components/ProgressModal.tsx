@@ -7,17 +7,18 @@ interface ProgressModalProps {
 }
 
 /**
- * Creates a progress bar string using Unicode block characters
+ * Creates a progress bar string using ASCII-safe characters
+ * Uses characters that render correctly on all terminals
  */
 const createProgressBar = (progress: number, width: number): string => {
   const filledWidth = Math.floor((progress / 100) * width)
   const emptyWidth = width - filledWidth
   
-  // Use block characters for smooth rendering
-  const filled = "█".repeat(filledWidth)
-  const empty = "░".repeat(emptyWidth)
+  // Use ASCII characters for universal terminal compatibility
+  const filled = "=".repeat(filledWidth)
+  const empty = "-".repeat(emptyWidth)
   
-  return filled + empty
+  return `[${filled}${empty}]`
 }
 
 /**
@@ -39,20 +40,20 @@ const getStageColor = (stage: AddRepoProgress["stage"]): string => {
 }
 
 /**
- * Get stage icon
+ * Get stage icon - uses ASCII-safe characters for terminal compatibility
  */
 const getStageIcon = (stage: AddRepoProgress["stage"]): string => {
   switch (stage) {
     case "cloning":
-      return "⬇"
+      return ">"
     case "indexing":
-      return "⚡"
+      return "*"
     case "complete":
-      return "✓"
+      return "+"
     case "error":
-      return "✗"
+      return "x"
     default:
-      return "•"
+      return "-"
   }
 }
 

@@ -142,7 +142,7 @@ export const SearchModal = ({ onSubmit, onCancel, onInput, value }: SearchModalP
           return (
             <text
               key={item.mode}
-              content={`[${isSelected ? "●" : "○"}] ${item.label}`}
+              content={`[${isSelected ? "*" : "o"}] ${item.label}`}
               style={{
                 fg: isSelected ? colors.status.info.default : colors.text.tertiary,
                 attributes: isSelected ? TextAttributes.BOLD : undefined,
@@ -161,7 +161,7 @@ export const SearchModal = ({ onSubmit, onCancel, onInput, value }: SearchModalP
       />
       
       <text
-        content="[Enter] Search  [Tab] Switch focus  [←/→] Change mode  [Esc] Cancel"
+        content="[Enter] Search  [Tab] Switch focus  [h/l] Change mode  [Esc] Cancel"
         style={{
           fg: colors.text.tertiary,
           marginTop: 1,

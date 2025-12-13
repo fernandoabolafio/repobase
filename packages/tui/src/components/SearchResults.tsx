@@ -184,7 +184,7 @@ export const SearchResults = ({
         }}
       >
         <text
-          content="[↑/k] Up  [↓/j] Down  [Esc/q] Back to list"
+          content="[Up/k] Up  [Down/j] Down  [Esc/q] Back to list"
           style={{
             fg: colors.text.tertiary,
           }}

@@ -1,59 +1,89 @@
 # Repobase
 
-A local Git repository manager with search capabilities. Index repositories and search across them using keyword, semantic, or hybrid search.
-
-## Packages
-
-- **engine** - Core library for repository management and indexing
-- **cli** - Command-line interface
-- **tui** - Terminal UI
-- **mcp-server** - MCP server for AI tool integration (Cursor, etc.)
+Index and search your Git repositories with AI. Includes a terminal UI and MCP server for AI tool integration.
 
 ## Installation
 
+Requires [Bun](https://bun.sh) runtime.
+
 ```bash
-bun install
+# Install globally
+npm install -g repobase
+
+# Or with bun
+bun install -g repobase
 ```
 
 ## Usage
 
-### CLI
+### Terminal UI
 
 ```bash
-# Add a repository
-bun run --filter @repobase/cli start add https://github.com/owner/repo
-
-# List repositories
-bun run --filter @repobase/cli start list
-
-# Sync repositories
-bun run --filter @repobase/cli start sync
-
-# Remove a repository
-bun run --filter @repobase/cli start remove <repo-id>
+repobase
 ```
 
-### TUI
+**Keyboard shortcuts:**
 
-```bash
-bun run --filter @repobase/tui start
-```
+- `a` - Add repository
+- `d` - Delete repository
+- `s` - Sync selected repository
+- `S` - Sync all repositories
+- `/` - Search
+- `q` - Quit
 
-### MCP Server
+### MCP Server (Cursor, Claude, etc.)
 
-Add to your MCP configuration:
+Add to your MCP configuration (`~/.cursor/mcp.json` or Claude config):
 
 ```json
 {
   "mcpServers": {
     "repobase": {
-      "command": "bun",
-      "args": ["run", "--filter", "@repobase/mcp-server", "start"]
+      "command": "repobase-mcp"
     }
   }
 }
 ```
 
-Available tools:
+**Available tools:**
+
 - `list_repos` - List all indexed repositories
 - `search` - Search across repositories (keyword, semantic, or hybrid mode)
+- `list_files` - List files in a repository
+- `glob_files` - Find files by glob pattern
+- `read_file` - Read file contents
+- `grep` - Search file contents with regex
+
+## Development
+
+```bash
+# Install dependencies
+bun install
+
+# Run TUI in dev mode
+bun run dev:tui
+
+# Run MCP server in dev mode
+bun run dev:mcp
+
+# Run tests
+bun run test
+
+# Build for distribution
+bun run build
+```
+
+## Architecture
+
+```
+repobase/
+├── packages/
+│   ├── engine/      # Core library (indexing, search, git operations)
+│   ├── tui/         # Terminal UI
+│   └── mcp-server/  # MCP server for AI tools
+└── dist/            # Built distribution (after bun run build)
+```
+
+## License
+
+MIT

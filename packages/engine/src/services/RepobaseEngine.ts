@@ -188,7 +188,11 @@ export const make = Effect.gen(function* () {
         mode,
         lastSyncedCommit: Option.some(currentCommit),
         lastSyncedAt: Option.some(new Date()),
-        addedAt: new Date()
+        addedAt: new Date(),
+        // Cloud sync fields - disabled by default
+        cloudEnabled: false,
+        lastPushedAt: Option.none(),
+        lastPushedCommit: Option.none()
       }
 
       // Save config

@@ -4,7 +4,7 @@ import { initialProgress } from "@repobase/engine"
 import { useCallback, useState } from "react"
 import { Header, RepoList, StatusBar, AddRepoModal, SearchModal, SearchResults, ProgressModal, ConfirmDialog } from "./components/index.js"
 import { colors } from "./theme/index.js"
-import { startMcpServer, stopMcpServer, isMcpServerRunning } from "./mcp-process.js"
+import { featureFlags } from "./config.js"
 
 type AppMode = "list" | "add" | "syncing" | "search" | "results" | "adding" | "confirmDelete"
 
@@ -17,6 +17,7 @@ interface AppProps {
   onRefreshRepos: () => Promise<RepoConfig[]>
   onSearch: (query: string, mode: SearchMode) => Promise<SearchResult[]>
   onQuit: () => void
+  cloudConfigured?: boolean
 }
 
 export const App = ({
@@ -28,6 +29,7 @@ export const App = ({
   onRefreshRepos,
   onSearch,
   onQuit,
+  cloudConfigured = false,
 }: AppProps) => {
   const [repos, setRepos] = useState<RepoConfig[]>(initialRepos)
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -43,9 +45,6 @@ export const App = ({
   const [searchMode, setSearchMode] = useState<SearchMode>("hybrid")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [searchResultIndex, setSearchResultIndex] = useState(0)
-  
-  // MCP server state
-  const [mcpServerRunning, setMcpServerRunning] = useState(() => isMcpServerRunning())
   
   // Delete confirmation state
   const [repoToDelete, setRepoToDelete] = useState<RepoConfig | null>(null)
@@ -73,7 +72,7 @@ export const App = ({
       setRepos(updatedRepos)
       // Keep showing progress modal with complete state for a moment
       setTimeout(() => {
-        showMessage(`✓ Added repository`)
+        showMessage(`[OK] Added repository`)
         setMode("list")
       }, 500)
     } catch (error) {
@@ -111,7 +110,7 @@ export const App = ({
       const updatedRepos = await onRefreshRepos()
       setRepos(updatedRepos)
       setSelectedIndex(Math.max(0, selectedIndex - 1))
-      showMessage(`✓ Removed ${repoToDelete.id}`)
+      showMessage(`[OK] Removed ${repoToDelete.id}`)
     } catch (error) {
       showMessage(`Error: ${error instanceof Error ? error.message : "Failed to remove"}`)
     }
@@ -136,7 +135,7 @@ export const App = ({
       const result = await onSyncRepo(repo.id)
       const updatedRepos = await onRefreshRepos()
       setRepos(updatedRepos)
-      showMessage(result.updated ? `✓ ${repo.id} updated` : `${repo.id} already up to date`)
+      showMessage(result.updated ? `[OK] ${repo.id} updated` : `${repo.id} already up to date`)
     } catch (error) {
       showMessage(`Error: ${error instanceof Error ? error.message : "Failed to sync"}`)
     }
@@ -153,7 +152,7 @@ export const App = ({
       const updatedRepos = await onRefreshRepos()
       setRepos(updatedRepos)
       const updatedCount = results.filter(r => r.updated).length
-      showMessage(`✓ Synced ${results.length} repos (${updatedCount} updated)`)
+      showMessage(`[OK] Synced ${results.length} repos (${updatedCount} updated)`)
     } catch (error) {
       showMessage(`Error: ${error instanceof Error ? error.message : "Failed to sync"}`)
     }
@@ -192,26 +191,6 @@ export const App = ({
     setSearchQuery("")
     setSearchResultIndex(0)
   }, [])
-
-  const handleToggleMcpServer = useCallback(() => {
-    if (mcpServerRunning) {
-      const stopped = stopMcpServer()
-      if (stopped) {
-        setMcpServerRunning(false)
-        showMessage("MCP server stopped")
-      } else {
-        showMessage("Error: Failed to stop MCP server")
-      }
-    } else {
-      const started = startMcpServer()
-      if (started) {
-        setMcpServerRunning(true)
-        showMessage("MCP server started")
-      } else {
-        showMessage("Error: Failed to start MCP server")
-      }
-    }
-  }, [mcpServerRunning, showMessage])
 
   useKeyboard((key) => {
     // Handle escape/quit in any mode
@@ -257,9 +236,6 @@ export const App = ({
       case "/":
         setMode("search")
         break
-      case "m":
-        handleToggleMcpServer()
-        break
     }
   })
 
@@ -298,7 +274,21 @@ export const App = ({
     >
       <Header version="0.1.0" />
       <RepoList repos={repos} selectedIndex={selectedIndex} />
-      <StatusBar mode={mode} message={message} mcpServerRunning={mcpServerRunning} />
+      <StatusBar 
+        mode={mode} 
+        message={message} 
+        mcpServerRunning={false}
+        cloudConfigured={featureFlags.cloudSync ? cloudConfigured : false}
+        cloudPendingCount={featureFlags.cloudSync ? repos.filter(r => {
+          if (!r.cloudEnabled) return false
+          const localCommit = r.lastSyncedCommit ? r.lastSyncedCommit : null
+          const cloudCommit = r.lastPushedCommit ? r.lastPushedCommit : null
+          // Pending if cloud enabled but commits don't match
+          if (localCommit === null) return false
+          if (cloudCommit === null) return true
+          return localCommit !== cloudCommit
+        }).length : 0}
+      />
       
       {mode === "add" && (
         <AddRepoModal

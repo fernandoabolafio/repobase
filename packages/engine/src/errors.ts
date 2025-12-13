@@ -46,6 +46,35 @@ export class SearchError extends Data.TaggedError("SearchError")<{
 }> {}
 
 /**
+ * Error from cloud sync operations
+ */
+export class CloudError extends Data.TaggedError("CloudError")<{
+  readonly operation: string
+  readonly message: string
+}> {}
+
+/**
+ * Cloud sync not configured
+ */
+export class CloudNotConfiguredError extends Data.TaggedError("CloudNotConfiguredError")<{}> {}
+
+/**
+ * File not found in index or on disk
+ */
+export class FileNotFoundError extends Data.TaggedError("FileNotFoundError")<{
+  readonly repo: string
+  readonly path: string
+}> {}
+
+/**
+ * Invalid pattern (e.g., malformed regex or glob)
+ */
+export class InvalidPatternError extends Data.TaggedError("InvalidPatternError")<{
+  readonly pattern: string
+  readonly message: string
+}> {}
+
+/**
  * Union of all engine errors
  */
 export type EngineError =
@@ -55,3 +84,7 @@ export type EngineError =
   | RepoAlreadyExistsError
   | IndexError
   | SearchError
+  | CloudError
+  | CloudNotConfiguredError
+  | FileNotFoundError
+  | InvalidPatternError

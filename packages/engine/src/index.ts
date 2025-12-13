@@ -5,11 +5,17 @@ export {
   type RepoMode,
   type RepoConfig,
   type RepoStoreData,
+  type CloudConfig,
+  type SyncManifestFile,
+  type SyncManifest,
   TrackingMode as TrackingModeSchema,
   PinnedMode as PinnedModeSchema,
   RepoMode as RepoModeSchema,
   RepoConfig as RepoConfigSchema,
   RepoStoreData as RepoStoreDataSchema,
+  CloudConfig as CloudConfigSchema,
+  SyncManifestFile as SyncManifestFileSchema,
+  SyncManifest as SyncManifestSchema,
   deriveRepoId,
   trackingMode,
   pinnedMode
@@ -21,8 +27,12 @@ export {
   StoreError,
   IndexError,
   SearchError,
+  CloudError,
+  CloudNotConfiguredError,
   RepoNotFoundError,
   RepoAlreadyExistsError,
+  FileNotFoundError,
+  InvalidPatternError,
   type EngineError
 } from "./errors.js"
 
@@ -38,7 +48,15 @@ export {
   type SearchMode,
   type IndexOptions,
   type IndexingProgress,
-  initialIndexingProgress
+  initialIndexingProgress,
+  type FileInfo,
+  type FileContent,
+  type GrepMatch,
+  type GrepResult,
+  type ListFilesOptions,
+  type GlobOptions,
+  type ReadFileOptions,
+  type GrepOptions
 } from "./services/Indexer.js"
 export {
   RepobaseEngine,
@@ -49,12 +67,21 @@ export {
   type SyncResult,
   initialProgress
 } from "./services/RepobaseEngine.js"
+export {
+  CloudSync,
+  type CloudSyncService,
+  type PushResult,
+  type PullResult,
+  type SyncStatus,
+  type CloudConfigInput
+} from "./services/CloudSync.js"
 
 // Layers
 export { layer as GitClientLayer } from "./services/GitClient.js"
 export { layer as RepoStoreLayer } from "./services/RepoStore.js"
 export { layer as IndexerLayer } from "./services/Indexer.js"
 export { layer as RepobaseEngineLayer } from "./services/RepobaseEngine.js"
+export { layer as CloudSyncLayer } from "./services/CloudSync.js"
 
 // Layer composition for Node.js
 import { Layer } from "effect"
@@ -63,6 +90,7 @@ import { layer as GitClientLayer } from "./services/GitClient.js"
 import { layer as RepoStoreLayer } from "./services/RepoStore.js"
 import { layer as IndexerLayer } from "./services/Indexer.js"
 import { layer as RepobaseEngineLayer } from "./services/RepobaseEngine.js"
+import { layer as CloudSyncLayer } from "./services/CloudSync.js"
 
 /**
  * Platform dependencies for Node.js
@@ -86,6 +114,13 @@ export const RepoStoreLive = RepoStoreLayer.pipe(Layer.provide(PlatformLive))
  * Indexer layer with Node.js platform
  */
 export const IndexerLive = IndexerLayer.pipe(Layer.provide(PlatformLive))
+
+/**
+ * CloudSync layer with Node.js platform and RepoStore
+ */
+export const CloudSyncLive = CloudSyncLayer.pipe(
+  Layer.provide(Layer.mergeAll(RepoStoreLayer, PlatformLive))
+)
 
 /**
  * RepobaseEngine layer with all dependencies

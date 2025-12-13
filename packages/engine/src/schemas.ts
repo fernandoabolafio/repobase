@@ -23,7 +23,11 @@ export const RepoConfig = Schema.Struct({
   mode: RepoMode,
   lastSyncedCommit: Schema.OptionFromNullOr(Schema.String),
   lastSyncedAt: Schema.OptionFromNullOr(Schema.DateFromNumber),
-  addedAt: Schema.DateFromNumber
+  addedAt: Schema.DateFromNumber,
+  // Cloud sync fields
+  cloudEnabled: Schema.optionalWith(Schema.Boolean, { default: () => false }),
+  lastPushedAt: Schema.OptionFromNullOr(Schema.DateFromNumber),
+  lastPushedCommit: Schema.OptionFromNullOr(Schema.String)
 })
 
 // Full store configuration
@@ -32,12 +36,34 @@ export const RepoStoreData = Schema.Struct({
   repos: Schema.Array(RepoConfig)
 })
 
+// Cloud configuration stored at ~/.repobase/cloud.json
+export const CloudConfig = Schema.Struct({
+  userId: Schema.String,
+  apiKey: Schema.OptionFromNullOr(Schema.String),
+  endpoint: Schema.String
+})
+
+// Manifest for tracking synced files per repo
+export const SyncManifestFile = Schema.Struct({
+  checksum: Schema.String,
+  size: Schema.Number
+})
+
+export const SyncManifest = Schema.Struct({
+  version: Schema.Literal(1),
+  lastUpdated: Schema.DateFromNumber,
+  files: Schema.Record({ key: Schema.String, value: SyncManifestFile })
+})
+
 // Derive types from schemas
 export type TrackingMode = Schema.Schema.Type<typeof TrackingMode>
 export type PinnedMode = Schema.Schema.Type<typeof PinnedMode>
 export type RepoMode = Schema.Schema.Type<typeof RepoMode>
 export type RepoConfig = Schema.Schema.Type<typeof RepoConfig>
 export type RepoStoreData = Schema.Schema.Type<typeof RepoStoreData>
+export type CloudConfig = Schema.Schema.Type<typeof CloudConfig>
+export type SyncManifestFile = Schema.Schema.Type<typeof SyncManifestFile>
+export type SyncManifest = Schema.Schema.Type<typeof SyncManifest>
 
 // Utility: derive repo ID from GitHub URL
 // e.g., "https://github.com/Effect-TS/effect" -> "Effect-TS-effect"

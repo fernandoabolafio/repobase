@@ -192,6 +192,74 @@ export const App = ({
     setSearchResultIndex(0)
   }, [])
 
+  const handleCopyMcpConfig = useCallback(async () => {
+    const mcpConfig = `{
+  "mcpServers": {
+    "repobase": {
+      "command": "repobase-mcp"
+    }
+  }
+}`
+    
+    try {
+      // Use platform-specific clipboard command
+      const platform = process.platform
+      let command: string
+      let args: string[]
+      
+      if (platform === "darwin") {
+        // macOS
+        command = "pbcopy"
+        args = []
+      } else if (platform === "linux") {
+        // Linux - try xclip first, fallback to xsel
+        command = "xclip"
+        args = ["-selection", "clipboard"]
+      } else if (platform === "win32") {
+        // Windows
+        command = "clip"
+        args = []
+      } else {
+        throw new Error("Unsupported platform for clipboard")
+      }
+      
+      const proc = Bun.spawn([command, ...args], {
+        stdin: "pipe",
+        stdout: "pipe",
+        stderr: "pipe",
+      })
+      
+      await proc.stdin.write(mcpConfig)
+      proc.stdin.end()
+      
+      await proc.exited
+      
+      if (proc.exitCode !== 0) {
+        // Try xsel on Linux if xclip failed
+        if (platform === "linux") {
+          const proc2 = Bun.spawn(["xsel", "--clipboard", "--input"], {
+            stdin: "pipe",
+            stdout: "pipe",
+            stderr: "pipe",
+          })
+          await proc2.stdin.write(mcpConfig)
+          proc2.stdin.end()
+          await proc2.exited
+          
+          if (proc2.exitCode !== 0) {
+            throw new Error("Failed to copy to clipboard")
+          }
+        } else {
+          throw new Error("Failed to copy to clipboard")
+        }
+      }
+      
+      showMessage("[OK] MCP configuration copied to clipboard")
+    } catch (error) {
+      showMessage(`Error: ${error instanceof Error ? error.message : "Failed to copy to clipboard"}`)
+    }
+  }, [showMessage])
+
   useKeyboard((key) => {
     // Handle escape/quit in any mode
     if (key.name === "escape" || (key.name === "q" && mode === "list")) {
@@ -235,6 +303,9 @@ export const App = ({
         break
       case "/":
         setMode("search")
+        break
+      case "c":
+        handleCopyMcpConfig()
         break
     }
   })

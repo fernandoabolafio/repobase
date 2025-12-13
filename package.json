@@ -1,6 +1,6 @@
 {
   "name": "repobase",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "Index and search your repositories with AI. Includes TUI and MCP server.",
   "type": "module",
   "workspaces": [

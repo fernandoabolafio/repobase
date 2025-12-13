@@ -21,7 +21,7 @@ export const StatusBar = ({ mode, message, mcpServerRunning, cloudConfigured, cl
     if (mode === "results") {
       return "[Esc] Back"
     }
-    return "[a] Add  [d] Delete  [s] Sync  [S] Sync All  [/] Search  [q] Quit"
+    return "[a] Add  [d] Delete  [s] Sync  [S] Sync All  [/] Search  [c] Copy MCP Config  [q] Quit"
   }
 
   const getMessageColor = () => {

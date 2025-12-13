@@ -102,7 +102,9 @@ describe("schemas", () => {
           mode: { _tag: "tracking", branch: "main" },
           lastSyncedCommit: "abc123",
           lastSyncedAt: now,
-          addedAt: now
+          addedAt: now,
+          lastPushedAt: null,
+          lastPushedCommit: null
         }
 
         const decoded = yield* Schema.decodeUnknown(RepoConfig)(input)
@@ -126,7 +128,9 @@ describe("schemas", () => {
           mode: { _tag: "pinned", ref: "v1.0.0" },
           lastSyncedCommit: null,
           lastSyncedAt: null,
-          addedAt: now
+          addedAt: now,
+          lastPushedAt: null,
+          lastPushedCommit: null
         }
 
         const decoded = yield* Schema.decodeUnknown(RepoConfig)(input)
@@ -159,7 +163,9 @@ describe("schemas", () => {
               mode: { _tag: "tracking", branch: "main" },
               lastSyncedCommit: null,
               lastSyncedAt: null,
-              addedAt: now
+              addedAt: now,
+              lastPushedAt: null,
+              lastPushedCommit: null
             }
           ]
         }

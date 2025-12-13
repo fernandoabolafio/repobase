@@ -54,8 +54,12 @@
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.0.0",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
+    "semantic-release": "^24.2.0",
     "typescript": "^5.9.3"
   }
 }

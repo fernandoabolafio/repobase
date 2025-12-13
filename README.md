@@ -84,6 +84,47 @@ repobase/
 └── dist/            # Built distribution (after bun run build)
 ```
 
+## Contributing
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning and changelog generation.
+
+### Commit Message Format
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Types:**
+
+- `feat:` - New features (triggers minor version bump)
+- `fix:` - Bug fixes (triggers patch version bump)
+- `perf:` - Performance improvements (triggers patch version bump)
+- `refactor:` - Code refactoring (triggers patch version bump)
+- `docs:` - Documentation changes (no release)
+- `style:` - Code style changes (no release)
+- `test:` - Test changes (no release)
+- `chore:` - Maintenance tasks (no release)
+- `ci:` - CI/CD changes (no release)
+
+**Breaking Changes:**
+
+Add `BREAKING CHANGE:` in the commit footer or `!` after the type to trigger a major version bump:
+
+```
+feat!: remove deprecated API
+
+BREAKING CHANGE: The old API has been removed.
+```
+
+### Release Process
+
+1. **Merges to `main`** automatically publish a release candidate to npm with the `@next` tag
+2. **Manual trigger** of the "Promote to Latest" workflow publishes to `@latest` and creates a GitHub release
+
 ## License
 
 MIT

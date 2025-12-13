@@ -5,10 +5,10 @@
  * keeping the terminal UI clean while capturing all log output
  * for debugging purposes.
  */
-import { PlatformLogger } from "@effect/platform"
+import { FileSystem, PlatformLogger } from "@effect/platform"
 import type * as PlatformError from "@effect/platform/Error"
 import { NodeFileSystem } from "@effect/platform-node"
-import { Layer, Logger, LogLevel } from "effect"
+import { Effect, Layer, Logger, LogLevel } from "effect"
 import * as path from "node:path"
 import * as os from "node:os"
 
@@ -19,6 +19,19 @@ const getDefaultLogPath = () => {
   const homeDir = os.homedir()
   return path.join(homeDir, ".repobase", "tui.log")
 }
+
+/**
+ * Ensures the directory for the log file exists, creating it if necessary.
+ */
+const ensureLogDirectory = (filePath: string) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem
+    const dir = path.dirname(filePath)
+    const exists = yield* fs.exists(dir)
+    if (!exists) {
+      yield* fs.makeDirectory(dir, { recursive: true })
+    }
+  })
 
 /**
  * Creates a Layer that provides a file-based logger.
@@ -43,13 +56,16 @@ export const fileLoggerLayer = (
   const minLevel = options?.minLevel ?? LogLevel.Debug
   const batchWindow = options?.batchWindow ?? 500
 
-  // Create the file logger effect
-  const fileLogger = Logger.logfmtLogger.pipe(
-    PlatformLogger.toFile(filePath, { 
-      flag: "a+", 
-      batchWindow 
-    })
-  )
+  // Create the file logger effect, ensuring the directory exists first
+  const fileLogger = Effect.gen(function* () {
+    yield* ensureLogDirectory(filePath)
+    return yield* Logger.logfmtLogger.pipe(
+      PlatformLogger.toFile(filePath, { 
+        flag: "a+", 
+        batchWindow 
+      })
+    )
+  })
 
   // Replace the default logger with our file logger
   const loggerLayer = Logger.replaceScoped(Logger.defaultLogger, fileLogger).pipe(
@@ -79,12 +95,16 @@ export const addFileLoggerLayer = (
   const filePath = logPath ?? getDefaultLogPath()
   const batchWindow = options?.batchWindow ?? 500
 
-  const fileLogger = Logger.logfmtLogger.pipe(
-    PlatformLogger.toFile(filePath, { 
-      flag: "a+", 
-      batchWindow 
-    })
-  )
+  // Create the file logger effect, ensuring the directory exists first
+  const fileLogger = Effect.gen(function* () {
+    yield* ensureLogDirectory(filePath)
+    return yield* Logger.logfmtLogger.pipe(
+      PlatformLogger.toFile(filePath, { 
+        flag: "a+", 
+        batchWindow 
+      })
+    )
+  })
 
   return Logger.addScoped(fileLogger).pipe(
     Layer.provide(NodeFileSystem.layer)

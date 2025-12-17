@@ -8,12 +8,8 @@ import {
   SearchError,
   StoreError
 } from "../errors.js"
-import {
-  deriveRepoId,
-  RepoConfig,
-  RepoMode,
-  trackingMode
-} from "../schemas.js"
+import { RepoConfig, RepoMode } from "../schemas.js"
+import { deriveRepoId, trackingMode } from "../utils.js"
 import { GitClient } from "./GitClient.js"
 import { RepoStore } from "./RepoStore.js"
 import {

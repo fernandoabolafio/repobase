@@ -5,11 +5,9 @@ import {
   PinnedMode,
   RepoMode,
   RepoConfig,
-  RepoStoreData,
-  deriveRepoId,
-  trackingMode,
-  pinnedMode
+  RepoStoreData
 } from "../src/schemas.js"
+import { deriveRepoId, trackingMode, pinnedMode } from "../src/utils.js"
 
 describe("schemas", () => {
   describe("deriveRepoId", () => {

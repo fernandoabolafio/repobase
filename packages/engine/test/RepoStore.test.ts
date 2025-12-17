@@ -3,7 +3,8 @@ import { Effect, Layer, Option } from "effect"
 import { FileSystem } from "@effect/platform"
 import { RepoStore } from "../src/services/RepoStore.js"
 import { layer as RepoStoreLayer } from "../src/services/RepoStore.js"
-import { RepoConfig, RepoStoreData, trackingMode } from "../src/schemas.js"
+import { RepoConfig, RepoStoreData } from "../src/schemas.js"
+import { trackingMode } from "../src/utils.js"
 import * as os from "os"
 
 /**

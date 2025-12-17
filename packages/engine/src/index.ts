@@ -15,11 +15,11 @@ export {
   RepoStoreData as RepoStoreDataSchema,
   CloudConfig as CloudConfigSchema,
   SyncManifestFile as SyncManifestFileSchema,
-  SyncManifest as SyncManifestSchema,
-  deriveRepoId,
-  trackingMode,
-  pinnedMode
+  SyncManifest as SyncManifestSchema
 } from "./schemas.js"
+
+// Utils
+export { deriveRepoId, trackingMode, pinnedMode } from "./utils.js"
 
 // Errors
 export {

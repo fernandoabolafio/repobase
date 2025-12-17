@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/fernandoabolafio/repobase/compare/v1.0.1...v1.0.2) (2025-12-17)
+
+### Refactoring
+
+* move utility functions to utils module ([42214c5](https://github.com/fernandoabolafio/repobase/commit/42214c5eb23809af8f6e2926515bb40dbc022a3f))
+
 ## [1.0.1](https://github.com/fernandoabolafio/repobase/compare/v1.0.0...v1.0.1) (2025-12-13)
 
 ### Bug Fixes

@@ -1,3 +1,9 @@
+## [1.0.3](https://github.com/fernandoabolafio/repobase/compare/v1.0.2...v1.0.3) (2025-12-23)
+
+### Bug Fixes
+
+* resolve Bun + Effect + Vitest test suite detection issue ([3bc60fd](https://github.com/fernandoabolafio/repobase/commit/3bc60fd7497e783e775b7997fcc53028077c0dc7))
+
 ## [1.0.2](https://github.com/fernandoabolafio/repobase/compare/v1.0.1...v1.0.2) (2025-12-17)
 
 ### Refactoring

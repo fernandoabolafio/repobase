@@ -1,5 +1,10 @@
 # Repobase
 
+[![npm version](https://img.shields.io/npm/v/repobase.svg)](https://www.npmjs.com/package/repobase)
+[![npm downloads](https://img.shields.io/npm/dm/repobase.svg)](https://www.npmjs.com/package/repobase)
+[![CI](https://github.com/fernandoabolafio/repobase/actions/workflows/release.yml/badge.svg)](https://github.com/fernandoabolafio/repobase/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Index and search your Git repositories with AI. Includes a terminal UI and MCP server for AI tool integration.
 
 ## Installation

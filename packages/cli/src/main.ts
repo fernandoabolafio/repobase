@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { Args, Command, Options, Prompt } from "@effect/cli"
-import { NodeContext, NodeRuntime } from "@effect/platform-node"
+import { BunContext, BunRuntime } from "@effect/platform-bun"
 import { Console, Effect, Layer, Option } from "effect"
 import {
   RepobaseEngine,
@@ -798,6 +798,6 @@ const AppLayer = Layer.mergeAll(EngineLive, CloudSyncLive, IndexerLayer)
 // Run the CLI - provide AppLayer then NodeContext (platform layer)
 cli(process.argv).pipe(
   Effect.provide(AppLayer),
-  Effect.provide(NodeContext.layer),
-  NodeRuntime.runMain
+  Effect.provide(BunContext.layer),
+  BunRuntime.runMain
 )

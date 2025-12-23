@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
-import { NodeContext } from "@effect/platform-node"
+import { BunContext } from "@effect/platform-bun"
 import { Effect, Layer, SubscriptionRef, Stream, Fiber } from "effect"
 import {
   RepobaseEngine,
@@ -30,7 +30,7 @@ const EngineLive = RepobaseEngineLayer.pipe(
 )
 
 const MainLayer = EngineLive.pipe(
-  Layer.provide(NodeContext.layer),
+  Layer.provide(BunContext.layer),
   Layer.provide(FileLogger)
 )
 

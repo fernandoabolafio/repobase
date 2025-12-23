@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@effect/platform": "^0.93.6",
-    "@effect/platform-node": "^0.103.0",
+    "@effect/platform-bun": "^0.86.0",
     "@lancedb/lancedb": "^0.15.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@opentui/core": "^0.1.0",

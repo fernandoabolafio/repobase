@@ -8,13 +8,13 @@
     "start": "bun run src/main.tsx"
   },
   "dependencies": {
-    "@repobase/engine": "workspace:*",
+    "@effect/platform": "^0.93.6",
+    "@effect/platform-bun": "^0.86.0",
     "@opentui/core": "^0.1.0",
     "@opentui/react": "^0.1.0",
-    "react": "^19.0.0",
+    "@repobase/engine": "workspace:*",
     "effect": "^3.19.9",
-    "@effect/platform": "^0.93.6",
-    "@effect/platform-node": "^0.103.0"
+    "react": "^19.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0"

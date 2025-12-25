@@ -2,6 +2,13 @@
 import { Icon } from '@astrojs/starlight/components';
 import demoVideo from '../assets/demo.mp4';
 
+// SEO & Social Meta Configuration
+const siteUrl = 'https://repobase.dev'; // Update to your actual domain
+const pageTitle = 'Repobase – AI-Powered Repository Search';
+const pageDescription = 'Give your AI agents instant access to the repositories that matter. Local indexing, semantic search, and MCP integration for Cursor, Claude, and more.';
+const ogImage = `${siteUrl}/og-image.png`;
+const twitterHandle = '@repobase'; // Update with your Twitter handle or remove
+
 const features = [
   {
     title: 'Semantic Search',
@@ -37,13 +44,76 @@ const mcpConfig = `{
 <!doctype html>
 <html lang="en" data-theme="dark">
   <head>
+    <!-- Basic Meta Tags -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Give your AI agents instant access to the repositories that matter. Local indexing, semantic search, and MCP integration for Cursor, Claude, and more." />
-    <title>Repobase – AI-Powered Repository Search</title>
+    <meta name="description" content={pageDescription} />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Repobase" />
+    <title>{pageTitle}</title>
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href={siteUrl} />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#20a1a1" />
+    <meta name="msapplication-TileColor" content="#0f0e0c" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={siteUrl} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Repobase - Your code, indexed locally, ready for AI" />
+    <meta property="og:site_name" content="Repobase" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={siteUrl} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content="Repobase - Your code, indexed locally, ready for AI" />
+    
+    <!-- Additional SEO -->
+    <meta name="keywords" content="AI, code search, repository, MCP, semantic search, Cursor, Claude, local indexing, developer tools" />
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Repobase",
+      "description": pageDescription,
+      "url": siteUrl,
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "macOS, Linux, Windows",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Repobase"
+      },
+      "softwareVersion": "1.0",
+      "keywords": "AI, code search, repository, MCP, semantic search"
+    })} />
     <style>
       :root {
         /* Colors from TUI theme */

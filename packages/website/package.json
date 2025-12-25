@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "npm run generate-assets && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "generate-assets": "node scripts/generate-og-image.js"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.32.0",

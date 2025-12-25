@@ -1,6 +1,7 @@
 ---
 import { Icon } from '@astrojs/starlight/components';
 import demoVideo from '../assets/demo.mp4';
+import Analytics from '@vercel/analytics/astro'
 
 // SEO & Social Meta Configuration
 const siteUrl = 'https://repobase.dev'; // Update to your actual domain
@@ -114,6 +115,9 @@ const mcpConfig = `{
       "softwareVersion": "1.0",
       "keywords": "AI, code search, repository, MCP, semantic search"
     })} />
+
+    <Analytics />
+
     <style>
       :root {
         /* Colors from TUI theme */

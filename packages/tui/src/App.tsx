@@ -321,7 +321,7 @@ export const App = ({
           backgroundColor: colors.bg.base,
         }}
       >
-        <Header version="0.1.0" />
+        <Header version="1.0.3" />
         <SearchResults
           query={searchQuery}
           mode={searchMode}
@@ -343,7 +343,7 @@ export const App = ({
         backgroundColor: colors.bg.base,
       }}
     >
-      <Header version="0.1.0" />
+      <Header version="1.0.3" />
       <RepoList repos={repos} selectedIndex={selectedIndex} />
       <StatusBar 
         mode={mode} 

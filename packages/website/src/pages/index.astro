@@ -1,0 +1,723 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+
+const features = [
+  {
+    title: 'AI-Powered Search',
+    description: 'Semantic search across all your repositories. Find code by meaning, not just keywords.',
+    icon: '🔍',
+  },
+  {
+    title: 'MCP Server',
+    description: 'Native integration with Cursor, Claude, and other AI tools via the Model Context Protocol.',
+    icon: '🔌',
+  },
+  {
+    title: 'Terminal UI',
+    description: 'Beautiful terminal interface to manage repositories with vim-style keybindings.',
+    icon: '⌨️',
+  },
+  {
+    title: 'Local-First',
+    description: 'Your code stays on your machine. Fast, private, and always available offline.',
+    icon: '🏠',
+  },
+];
+
+const codeExample = `# Install globally
+npm install -g repobase
+
+# Launch the TUI
+repobase
+
+# Or add the MCP server to your AI tool
+repobase-mcp`;
+
+const mcpConfig = `{
+  "mcpServers": {
+    "repobase": {
+      "command": "repobase-mcp"
+    }
+  }
+}`;
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Index and search your Git repositories with AI. Beautiful TUI and MCP server for Cursor, Claude, and more." />
+    <title>Repobase – AI-Powered Repository Search</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        /* Colors from TUI theme */
+        --neutral-900: #0f0e0c;
+        --neutral-800: #181714;
+        --neutral-700: #1f1d19;
+        --neutral-600: #28251f;
+        --neutral-500: #353128;
+        --neutral-400: #4d4840;
+        --neutral-300: #6b645a;
+        --neutral-200: #8c867c;
+        --neutral-100: #b8b3a9;
+        --neutral-50: #e8e6e1;
+        
+        --primary-500: #20a1a1;
+        --primary-400: #3dbdbd;
+        --primary-300: #66cfcf;
+        --primary-700: #156363;
+        --primary-900: #0a2e2e;
+        
+        --success-400: #4fb36a;
+        --warning-400: #c99428;
+        --error-400: #db4f4f;
+      }
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      html {
+        scroll-behavior: smooth;
+      }
+      
+      body {
+        font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+        background: var(--neutral-800);
+        color: var(--neutral-50);
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+      
+      /* Animated background */
+      .bg-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+          radial-gradient(ellipse at 20% 20%, var(--primary-900) 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 80%, var(--primary-900) 0%, transparent 50%),
+          var(--neutral-900);
+        z-index: -1;
+      }
+      
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+      }
+      
+      /* Navigation */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem 0;
+        background: rgba(15, 14, 12, 0.8);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--neutral-500);
+        z-index: 100;
+      }
+      
+      .nav-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--neutral-50);
+        text-decoration: none;
+      }
+      
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+      }
+      
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+      }
+      
+      .nav-link {
+        color: var(--neutral-200);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: color 0.15s ease;
+      }
+      
+      .nav-link:hover {
+        color: var(--primary-400);
+      }
+      
+      .github-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: var(--neutral-700);
+        border: 1px solid var(--neutral-500);
+        border-radius: 6px;
+        color: var(--neutral-50);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.15s ease;
+      }
+      
+      .github-link:hover {
+        background: var(--neutral-600);
+        border-color: var(--primary-500);
+      }
+      
+      /* Hero */
+      .hero {
+        padding: 10rem 0 6rem;
+        text-align: center;
+      }
+      
+      .hero-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: var(--primary-900);
+        border: 1px solid var(--primary-700);
+        border-radius: 100px;
+        color: var(--primary-400);
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 1.5rem;
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+      }
+      
+      .hero h1 {
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+        animation-delay: 0.1s;
+      }
+      
+      .hero h1 span {
+        background: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-300) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .hero-description {
+        font-size: 1.125rem;
+        color: var(--neutral-200);
+        max-width: 600px;
+        margin: 0 auto 2.5rem;
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+        animation-delay: 0.2s;
+      }
+      
+      .hero-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+        animation-delay: 0.3s;
+      }
+      
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.75rem;
+        border-radius: 8px;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-family: inherit;
+      }
+      
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+        color: var(--neutral-50);
+        border: 1px solid var(--primary-500);
+      }
+      
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(32, 161, 161, 0.3);
+      }
+      
+      .btn-secondary {
+        background: var(--neutral-700);
+        color: var(--neutral-50);
+        border: 1px solid var(--neutral-500);
+      }
+      
+      .btn-secondary:hover {
+        background: var(--neutral-600);
+        border-color: var(--primary-500);
+      }
+      
+      /* Terminal preview */
+      .terminal-preview {
+        max-width: 700px;
+        margin: 4rem auto 0;
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+        animation-delay: 0.4s;
+      }
+      
+      .terminal {
+        background: var(--neutral-900);
+        border: 1px solid var(--neutral-500);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+      }
+      
+      .terminal-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        background: var(--neutral-700);
+        border-bottom: 1px solid var(--neutral-500);
+      }
+      
+      .terminal-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      
+      .terminal-dot.red { background: var(--error-400); }
+      .terminal-dot.yellow { background: var(--warning-400); }
+      .terminal-dot.green { background: var(--success-400); }
+      
+      .terminal-title {
+        flex: 1;
+        text-align: center;
+        font-size: 0.75rem;
+        color: var(--neutral-300);
+      }
+      
+      .terminal-body {
+        padding: 1.5rem;
+        font-size: 0.875rem;
+        line-height: 1.8;
+      }
+      
+      .terminal-body .comment {
+        color: var(--neutral-300);
+      }
+      
+      .terminal-body .command {
+        color: var(--primary-400);
+      }
+      
+      .terminal-body .prompt {
+        color: var(--success-400);
+      }
+      
+      /* Features */
+      .features {
+        padding: 6rem 0;
+      }
+      
+      .section-header {
+        text-align: center;
+        margin-bottom: 4rem;
+      }
+      
+      .section-header h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+      
+      .section-header p {
+        color: var(--neutral-200);
+        max-width: 500px;
+        margin: 0 auto;
+      }
+      
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+      }
+      
+      .feature-card {
+        background: var(--neutral-700);
+        border: 1px solid var(--neutral-500);
+        border-radius: 12px;
+        padding: 2rem;
+        transition: all 0.2s ease;
+      }
+      
+      .feature-card:hover {
+        border-color: var(--primary-500);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+      }
+      
+      .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+      
+      .feature-card h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      
+      .feature-card p {
+        color: var(--neutral-200);
+        font-size: 0.9375rem;
+      }
+      
+      /* Quick start */
+      .quickstart {
+        padding: 6rem 0;
+        background: var(--neutral-900);
+      }
+      
+      .quickstart-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+      
+      @media (max-width: 768px) {
+        .quickstart-content {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+      }
+      
+      .quickstart-text h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+      
+      .quickstart-text p {
+        color: var(--neutral-200);
+        margin-bottom: 1.5rem;
+      }
+      
+      .quickstart-steps {
+        list-style: none;
+      }
+      
+      .quickstart-steps li {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        color: var(--neutral-100);
+      }
+      
+      .step-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: var(--primary-900);
+        border: 1px solid var(--primary-500);
+        border-radius: 50%;
+        font-size: 0.75rem;
+        color: var(--primary-400);
+        flex-shrink: 0;
+      }
+      
+      .code-block {
+        background: var(--neutral-800);
+        border: 1px solid var(--neutral-500);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      
+      .code-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: var(--neutral-700);
+        border-bottom: 1px solid var(--neutral-500);
+      }
+      
+      .code-filename {
+        font-size: 0.75rem;
+        color: var(--neutral-300);
+      }
+      
+      .code-copy {
+        padding: 0.25rem 0.75rem;
+        background: transparent;
+        border: 1px solid var(--neutral-500);
+        border-radius: 4px;
+        color: var(--neutral-200);
+        font-size: 0.75rem;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s ease;
+      }
+      
+      .code-copy:hover {
+        background: var(--neutral-600);
+        border-color: var(--primary-500);
+        color: var(--neutral-50);
+      }
+      
+      .code-content {
+        padding: 1.5rem;
+        font-size: 0.875rem;
+        overflow-x: auto;
+      }
+      
+      .code-content pre {
+        margin: 0;
+      }
+      
+      /* Footer */
+      footer {
+        padding: 3rem 0;
+        border-top: 1px solid var(--neutral-500);
+        text-align: center;
+      }
+      
+      .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .footer-link {
+        color: var(--neutral-200);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: color 0.15s ease;
+      }
+      
+      .footer-link:hover {
+        color: var(--primary-400);
+      }
+      
+      .footer-copyright {
+        font-size: 0.75rem;
+        color: var(--neutral-300);
+      }
+      
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      /* Selection */
+      ::selection {
+        background: rgba(32, 161, 161, 0.3);
+        color: var(--neutral-50);
+      }
+      
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: var(--neutral-900);
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: var(--neutral-400);
+        border-radius: 4px;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--neutral-300);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-pattern"></div>
+    
+    <nav>
+      <div class="container nav-content">
+        <a href="/" class="logo">
+          <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="28" height="28" rx="4" stroke="#20a1a1" stroke-width="2"/>
+            <circle cx="10" cy="10" r="2" fill="#3dbdbd"/>
+            <circle cx="10" cy="16" r="2" fill="#3dbdbd"/>
+            <circle cx="10" cy="22" r="2" fill="#3dbdbd"/>
+            <line x1="14" y1="10" x2="26" y2="10" stroke="#6b645a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="14" y1="16" x2="22" y2="16" stroke="#6b645a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="14" y1="22" x2="24" y2="22" stroke="#6b645a" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          repobase
+        </a>
+        
+        <div class="nav-links">
+          <a href="/introduction" class="nav-link">Docs</a>
+          <a href="https://github.com/fernandoabolafio/repobase" class="github-link" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </nav>
+    
+    <main>
+      <section class="hero">
+        <div class="container">
+          <span class="hero-badge">Open Source</span>
+          <h1>Search your repos<br /><span>with AI</span></h1>
+          <p class="hero-description">
+            Index your Git repositories locally and search them with AI. 
+            Includes a beautiful terminal UI and MCP server for Cursor, Claude, and more.
+          </p>
+          <div class="hero-actions">
+            <a href="/introduction" class="btn btn-primary">
+              Get Started
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 8h10M9 4l4 4-4 4"/>
+              </svg>
+            </a>
+            <a href="https://github.com/fernandoabolafio/repobase" class="btn btn-secondary" target="_blank" rel="noopener">
+              View on GitHub
+            </a>
+          </div>
+          
+          <div class="terminal-preview">
+            <div class="terminal">
+              <div class="terminal-header">
+                <div class="terminal-dot red"></div>
+                <div class="terminal-dot yellow"></div>
+                <div class="terminal-dot green"></div>
+                <span class="terminal-title">repobase</span>
+              </div>
+              <div class="terminal-body">
+                <div><span class="comment"># Install globally</span></div>
+                <div><span class="prompt">$</span> <span class="command">npm install -g repobase</span></div>
+                <br />
+                <div><span class="comment"># Launch the TUI</span></div>
+                <div><span class="prompt">$</span> <span class="command">repobase</span></div>
+                <br />
+                <div><span class="comment"># Or start the MCP server</span></div>
+                <div><span class="prompt">$</span> <span class="command">repobase-mcp</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section class="features">
+        <div class="container">
+          <div class="section-header">
+            <h2>Everything you need</h2>
+            <p>Powerful features to search and understand your codebase</p>
+          </div>
+          
+          <div class="features-grid">
+            {features.map(feature => (
+              <div class="feature-card">
+                <div class="feature-icon">{feature.icon}</div>
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      <section class="quickstart">
+        <div class="container quickstart-content">
+          <div class="quickstart-text">
+            <h2>Quick Start</h2>
+            <p>Get up and running in under a minute. Works with any Git repository.</p>
+            
+            <ul class="quickstart-steps">
+              <li>
+                <span class="step-number">1</span>
+                Install Repobase globally with npm or bun
+              </li>
+              <li>
+                <span class="step-number">2</span>
+                Run <code style="color: var(--primary-400)">repobase</code> to open the TUI
+              </li>
+              <li>
+                <span class="step-number">3</span>
+                Add your repositories and start searching
+              </li>
+            </ul>
+            
+            <a href="/introduction" class="btn btn-primary" style="margin-top: 1rem;">
+              Read the docs
+            </a>
+          </div>
+          
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-filename">~/.cursor/mcp.json</span>
+              <button class="code-copy" onclick="navigator.clipboard.writeText(this.dataset.code)" data-code='{"mcpServers":{"repobase":{"command":"repobase-mcp"}}}'>
+                Copy
+              </button>
+            </div>
+            <div class="code-content">
+              <pre><code set:html={mcpConfig.replace(/</g, '&lt;').replace(/>/g, '&gt;')} /></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <div class="container">
+        <div class="footer-links">
+          <a href="/introduction" class="footer-link">Documentation</a>
+          <a href="https://github.com/fernandoabolafio/repobase" class="footer-link" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://www.npmjs.com/package/repobase" class="footer-link" target="_blank" rel="noopener">npm</a>
+        </div>
+        <p class="footer-copyright">
+          MIT License © 2024 Repobase
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
+

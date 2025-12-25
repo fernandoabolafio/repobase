@@ -1,0 +1,205 @@
+/**
+ * Repobase Website Custom Theme
+ * 
+ * A warm dark theme matching the TUI design.
+ * Based on teal/cyan accents with warm neutral backgrounds.
+ */
+
+:root {
+  /* Typography - distinctive font choices */
+  --sl-font: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  --sl-font-system: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Dark theme (default) */
+:root,
+[data-theme='dark'] {
+  /* Backgrounds - warm dark tones from TUI */
+  --sl-color-bg: #181714;
+  --sl-color-bg-nav: #0f0e0c;
+  --sl-color-bg-sidebar: #0f0e0c;
+  --sl-color-bg-inline-code: #1f1d19;
+  --sl-color-bg-accent: #0a2e2e;
+  
+  /* Hairlines and borders */
+  --sl-color-hairline: #353128;
+  --sl-color-hairline-light: #28251f;
+  --sl-color-hairline-shade: #4d4840;
+  
+  /* Text colors */
+  --sl-color-text: #e8e6e1;
+  --sl-color-text-accent: #3dbdbd;
+  --sl-color-text-invert: #0f0e0c;
+  
+  /* Gray scale - warm tones */
+  --sl-color-gray-1: #e8e6e1;
+  --sl-color-gray-2: #b8b3a9;
+  --sl-color-gray-3: #8c867c;
+  --sl-color-gray-4: #6b645a;
+  --sl-color-gray-5: #4d4840;
+  --sl-color-gray-6: #28251f;
+  --sl-color-gray-7: #181714;
+  
+  /* Accent colors - teal/cyan from TUI */
+  --sl-color-accent-low: #0a2e2e;
+  --sl-color-accent: #20a1a1;
+  --sl-color-accent-high: #66cfcf;
+  
+  /* Status colors */
+  --sl-color-green-low: #0a2912;
+  --sl-color-green: #4fb36a;
+  --sl-color-green-high: #7acc91;
+  
+  --sl-color-orange-low: #2e1f05;
+  --sl-color-orange: #c99428;
+  --sl-color-orange-high: #ddb555;
+  
+  --sl-color-red-low: #2e0a0a;
+  --sl-color-red: #db4f4f;
+  --sl-color-red-high: #e87a7a;
+  
+  --sl-color-blue-low: #0a1a2e;
+  --sl-color-blue: #4f84c7;
+  --sl-color-blue-high: #7aa6db;
+  
+  /* White & black */
+  --sl-color-white: #e8e6e1;
+  --sl-color-black: #0f0e0c;
+}
+
+/* Light theme fallback */
+[data-theme='light'] {
+  --sl-color-bg: #faf9f7;
+  --sl-color-bg-nav: #f0eeeb;
+  --sl-color-bg-sidebar: #f0eeeb;
+  --sl-color-bg-inline-code: #e8e6e1;
+  
+  --sl-color-text: #181714;
+  --sl-color-text-accent: #156363;
+  
+  --sl-color-accent-low: #ccf0f0;
+  --sl-color-accent: #1a8282;
+  --sl-color-accent-high: #0f4444;
+}
+
+/* Global styles */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Code blocks styling */
+.expressive-code pre {
+  background: #0f0e0c !important;
+  border: 1px solid #353128;
+}
+
+.expressive-code .frame {
+  background: #0f0e0c !important;
+}
+
+/* Links */
+a {
+  transition: color 0.15s ease;
+}
+
+/* Buttons */
+.sl-link-button {
+  transition: all 0.2s ease;
+}
+
+.sl-link-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(32, 161, 161, 0.3);
+}
+
+/* Sidebar styling */
+.sidebar-content {
+  border-right: 1px solid var(--sl-color-hairline);
+}
+
+/* Cards */
+.card {
+  background: #1f1d19;
+  border: 1px solid #353128;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: #20a1a1;
+  box-shadow: 0 0 20px rgba(32, 161, 161, 0.1);
+}
+
+/* Hero section enhancements */
+.hero {
+  background: linear-gradient(
+    135deg,
+    #0f0e0c 0%,
+    #181714 50%,
+    #0a2e2e 100%
+  );
+}
+
+/* Selection color */
+::selection {
+  background: rgba(32, 161, 161, 0.3);
+  color: #e8e6e1;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f0e0c;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4d4840;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b645a;
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid #20a1a1;
+  outline-offset: 2px;
+}
+
+/* Smooth animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.animation-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+

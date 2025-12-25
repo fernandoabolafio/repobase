@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/fernandoabolafio/repobase/compare/v1.1.0...v1.2.0) (2025-12-25)
+
+### Features
+
+* **website:** add demo video to homepage ([a69984d](https://github.com/fernandoabolafio/repobase/commit/a69984d17a8be24cd46206dfaa29f66c44030368))
+
 ## [1.1.0](https://github.com/fernandoabolafio/repobase/compare/v1.0.3...v1.1.0) (2025-12-25)
 
 ### Features

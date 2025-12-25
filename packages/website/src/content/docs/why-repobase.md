@@ -5,6 +5,21 @@ description: Learn why Repobase is the right choice for your repository search n
 
 <!-- Add your content here -->
 
-To effectively code using AI agents, having correct and up-to-date documentation available is crucial. One way to do it is to let the agent search the web, or copy and paste the documentation into the agent or use one-of MCPs for each library you're using. Or use for example Context7, which is an MCP for many different frameworks and libraries.
-Web search is limited, and you have to hope the agent can find what enough details/examples of what it needds. It's pretty much you delegating a google search to the agent. That comes with all the limitations of a google search and also, the fact that certain contents won't come up or won't be available even to the agent, becaue of website restrictions. Copy and pasting works, but that defeats the purpose of being more productive with agents, you will have to search the documentation yourself, copy and paste either into your prompt or in a markdown file which you'll keep around as reference; that will soon become outdate and it is hard to replicate across all projects you work with. You can use one-of MCPs, that is again more overhead and possibly bloating the context window of your agent by loading all those MCPs. Finally you can use Context7 or similar, where all the information is likely available. But that requires internet connection, http calls back and fourth to retrieve information. By being remote, you have infosec concerns about private repos, but also, private repos are a paid feature.
-So I thought, wouldn't be great just have all the repos I care for indexed locally and easily searchable by coding tools such as Cursor, Opencode, Claude Code and others? Indeed, one could just clone repos and inform the agent where they are located and let the agent use terminal commands such as grep to search it. But that's again a lot of overhead, messy, and hard to keep up-to-date, as you constantly need to inform the agents where repos are, sync the repos with latest versions. And finally, one big limitation, the agent cannot semantically search those repos. It can do keyword matching on strings (e.g grep) but it can't for example ask "Where is the google oauth defined?". With repobase, all of it becomes seamless. The agent runs 'list_repo' and knows immediately which repos are available for exploration. It then uses 'search_repo' to semantically locate the relevant code, or use keyword search if that's more appropriate. It's essentially a centralized inventory of the repositories you care for. Furthermore, it's in the repos where one can find the real latest documentation and advanced usage pattern examples. But also, able to dig into the actuall code that sits behind the APIs understand the internals of a library or framework.
+To effectively code using AI agents, having access to correct and up-to-date documentation is crucial. Currently, developers often rely on a few imperfect methods:
+
+1. **Web Search**: This is essentially delegating a Google search to the agent. It is often limited, unreliable, and restricted by website paywalls or anti-bot measures. You have to "hope" the agent finds enough relevant details.
+2. **Copy-Pasting**: While effective, it kills productivity. You have to manually find, copy, and paste context into prompts or reference files. These files quickly become outdated and are hard to manage across multiple projects.
+3. **Specialized MCPs**: Using individual MCPs for every library adds overhead and bloats the agent's context window.
+4. **Remote Services (e.g., Context7)**: Centralized MCPs solve some issues but introduce latency, require an internet connection, and raise InfoSec concerns regarding private repositories (often a paid feature).
+
+**So I thought: wouldn't it be great to have all the repositories I care about indexed locally and easily searchable by my tools?**
+
+You could manually clone repositories and let an agent use `grep`, but that is messy and high-maintenance. You constantly need to tell the agent where files are, manually sync updates, and—crucially—you lose the ability to perform **semantic search**. `grep` finds strings, but it can't answer "Where is the Google OAuth flow defined?"
+
+**This is where Repobase shines.**
+
+It acts as a seamless, centralized inventory of your important repositories.
+
+- **Seamless Integration**: The agent simply runs `list_repos` to see what's available and `search` to find code semantically or by keyword.
+- **Source of Truth**: The code itself is the ultimate documentation, containing the latest usage patterns and implementation details often missing from docs.
+- **Local & Private**: Everything stays on your machine. Indexing uses a local model, ensuring maximum performance and privacy for both public and private code.

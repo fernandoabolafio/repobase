@@ -49,9 +49,15 @@ const main = async () => {
   // Log startup to file
   await runEffect(Effect.log(`TUI starting - logs written to ${defaultLogPath}`))
   
-  // Create the renderer
+  // Create the renderer - disable exitOnCtrlC so we can handle cleanup properly
   const renderer = await createCliRenderer({
-    exitOnCtrlC: true,
+    exitOnCtrlC: false,
+  })
+  
+  // Handle Ctrl+C (SIGINT) manually for clean shutdown
+  process.on('SIGINT', () => {
+    renderer.destroy()
+    process.exit(0)
   })
 
   // Load initial repos
@@ -105,6 +111,7 @@ const main = async () => {
         return await runEffect(search(query, mode))
       }}
       onQuit={() => {
+        renderer.destroy()
         process.exit(0)
       }}
       cloudConfigured={cloudConfigured}

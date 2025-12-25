@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/fernandoabolafio/repobase/compare/v1.2.0...v1.3.0) (2025-12-25)
+
+### Features
+
+* **website:** add SEO optimization and social media sharing support ([0ee9c47](https://github.com/fernandoabolafio/repobase/commit/0ee9c47b6cfcc9fa2d67b82c9fa1dcc7df08f7d5))
+
 ## [1.2.0](https://github.com/fernandoabolafio/repobase/compare/v1.1.0...v1.2.0) (2025-12-25)
 
 ### Features

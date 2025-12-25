@@ -398,6 +398,55 @@ const mcpConfig = `{
         font-size: 0.9375rem;
       }
       
+      .features-cta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 3rem;
+        padding: 1rem 1.5rem;
+        background: var(--neutral-800);
+        border: 1px solid var(--neutral-500);
+        border-radius: 8px;
+      }
+      
+      .features-cta-text {
+        color: var(--neutral-200);
+        font-size: 0.875rem;
+      }
+      
+      .features-cta-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-400);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+      }
+      
+      .features-cta-link:hover {
+        color: var(--primary-300);
+      }
+      
+      .features-cta-link svg {
+        transition: transform 0.15s ease;
+      }
+      
+      .features-cta-link:hover svg {
+        transform: translateX(3px);
+      }
+      
+      @media (max-width: 640px) {
+        .features-cta {
+          flex-direction: column;
+          gap: 0.75rem;
+          text-align: center;
+        }
+      }
+      
       /* Quick start */
       .quickstart {
         padding: 6rem 0;
@@ -658,8 +707,8 @@ const mcpConfig = `{
       <section class="features">
         <div class="container">
           <div class="section-header">
-            <h2>Why Repobase?</h2>
-            <p>AI agents need good context. Current methods are broken.</p>
+            <h2>Built for AI Workflows</h2>
+            <p>Give your AI agents the context they need. Works with Cursor, Opencode, Claude Code and more.</p>
           </div>
           
           <div class="features-grid">
@@ -670,6 +719,16 @@ const mcpConfig = `{
                 <p>{feature.description}</p>
               </div>
             ))}
+          </div>
+          
+          <div class="features-cta">
+            <span class="features-cta-text">AI agents need good context. Current methods are broken.</span>
+            <a href="/introduction#why-repobase" class="features-cta-link">
+              Learn why Repobase
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 8h10M9 4l4 4-4 4"/>
+              </svg>
+            </a>
           </div>
         </div>
       </section>

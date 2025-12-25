@@ -5,6 +5,8 @@
 [![CI](https://github.com/fernandoabolafio/repobase/actions/workflows/release.yml/badge.svg)](https://github.com/fernandoabolafio/repobase/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+![Repobase TUI](packages/website/src/assets/tui-screenshot.png)
+
 Index and search your Git repositories with AI. Includes a terminal UI and MCP server for AI tool integration.
 
 ## Installation

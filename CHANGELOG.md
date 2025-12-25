@@ -1,3 +1,14 @@
+## [1.1.0](https://github.com/fernandoabolafio/repobase/compare/v1.0.3...v1.1.0) (2025-12-25)
+
+### Features
+
+* add website package with Astro and Starlight ([9e4a757](https://github.com/fernandoabolafio/repobase/commit/9e4a757c25cce505186c52c951719c8736c06da5))
+
+### Bug Fixes
+
+* **tui:** prevent errors on Ctrl+C exit by properly destroying renderer ([3c5f219](https://github.com/fernandoabolafio/repobase/commit/3c5f219a86711d15038d28b44fc755ed37f92649))
+* **website:** correct docs routing paths to fix 404 errors ([1df7ee5](https://github.com/fernandoabolafio/repobase/commit/1df7ee52c18f414bca103aab25b2c5fa27f9c76b))
+
 ## [1.0.3](https://github.com/fernandoabolafio/repobase/compare/v1.0.2...v1.0.3) (2025-12-23)
 
 ### Bug Fixes

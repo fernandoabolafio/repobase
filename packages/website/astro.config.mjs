@@ -22,6 +22,7 @@ export default defineConfig({
           label: 'Getting Started',
           items: [
             { label: 'Introduction', link: '/introduction/' },
+            { label: 'Why Repobase', link: '/why-repobase/' },
           ],
         },
       ],

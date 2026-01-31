@@ -1,15 +1,15 @@
-#!/usr/bin/env bun
 /**
  * Build script for repobase distribution package.
  * 
  * Bundles TUI and MCP server into dist/ for npm publishing.
  */
 
-import { $ } from "bun"
-import { rm, mkdir, chmod } from "fs/promises"
-import { join } from "path"
+import { build } from "esbuild"
+import { chmod, mkdir, rm, writeFile } from "node:fs/promises"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 
-const ROOT = join(import.meta.dirname, "..")
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
 const DIST = join(ROOT, "dist")
 
 async function clean() {
@@ -21,10 +21,12 @@ async function clean() {
 async function buildTUI() {
   console.log("📦 Building TUI...")
   
-  await Bun.build({
-    entrypoints: [join(ROOT, "packages/tui/src/main.tsx")],
+  await build({
+    entryPoints: [join(ROOT, "packages/tui/src/main.tsx")],
     outdir: join(DIST, "tui"),
-    target: "node",
+    bundle: true,
+    platform: "node",
+    target: "node20",
     format: "esm",
     splitting: false,
     sourcemap: "external",
@@ -49,10 +51,12 @@ async function buildTUI() {
 async function buildMCP() {
   console.log("📦 Building MCP server...")
   
-  await Bun.build({
-    entrypoints: [join(ROOT, "packages/mcp-server/src/main.ts")],
+  await build({
+    entryPoints: [join(ROOT, "packages/mcp-server/src/main.ts")],
     outdir: join(DIST, "mcp-server"),
-    target: "node",
+    bundle: true,
+    platform: "node",
+    target: "node20",
     format: "esm",
     splitting: false,
     sourcemap: "external",
@@ -79,17 +83,17 @@ async function createBinWrappers() {
   
   await mkdir(join(DIST, "bin"), { recursive: true })
   
-  // TUI wrapper - uses bun for @opentui compatibility
-  const tuiBin = `#!/usr/bin/env bun
+  // TUI wrapper - uses node runtime
+  const tuiBin = `#!/usr/bin/env node
 import "../tui/main.js"
 `
-  await Bun.write(join(DIST, "bin/repobase.js"), tuiBin)
+  await writeFile(join(DIST, "bin/repobase.js"), tuiBin)
   
-  // MCP wrapper - uses bun for consistency
-  const mcpBin = `#!/usr/bin/env bun
+  // MCP wrapper - uses node runtime
+  const mcpBin = `#!/usr/bin/env node
 import "../mcp-server/main.js"
 `
-  await Bun.write(join(DIST, "bin/repobase-mcp.js"), mcpBin)
+  await writeFile(join(DIST, "bin/repobase-mcp.js"), mcpBin)
   
   // Make bin files executable
   await chmod(join(DIST, "bin/repobase.js"), 0o755)

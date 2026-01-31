@@ -5,14 +5,12 @@ description: Get up and running with Repobase in minutes
 
 ## Installation
 
-Repobase requires [Bun](https://bun.sh) runtime. Install it globally:
+Repobase requires Node.js (>=20). Install it globally:
 
 ```bash
 # Install with npm
 npm install -g repobase
 
-# Or with bun
-bun install -g repobase
 ```
 
 ## Quick Start

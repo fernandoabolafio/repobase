@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@effect/platform": "^0.93.6",
-    "@effect/platform-bun": "^0.86.0",
+    "@effect/platform-node": "^0.103.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@repobase/engine": "workspace:*",
     "effect": "^3.19.9",

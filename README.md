@@ -11,14 +11,12 @@ Index and search your Git repositories with AI. Includes a terminal UI and MCP s
 
 ## Installation
 
-Requires [Bun](https://bun.sh) runtime.
+Requires Node.js (>=20).
 
 ```bash
 # Install globally
 npm install -g repobase
 
-# Or with bun
-bun install -g repobase
 ```
 
 ## Usage
@@ -65,19 +63,19 @@ Add to your MCP configuration (`~/.cursor/mcp.json` or Claude config):
 
 ```bash
 # Install dependencies
-bun install
+pnpm install
 
 # Run TUI in dev mode
-bun run dev:tui
+pnpm run dev:tui
 
 # Run MCP server in dev mode
-bun run dev:mcp
+pnpm run dev:mcp
 
 # Run tests
-bun run test
+pnpm run test
 
 # Build for distribution
-bun run build
+pnpm run build
 ```
 
 ## Architecture
@@ -88,7 +86,7 @@ repobase/
 │   ├── engine/      # Core library (indexing, search, git operations)
 │   ├── tui/         # Terminal UI
 │   └── mcp-server/  # MCP server for AI tools
-└── dist/            # Built distribution (after bun run build)
+└── dist/            # Built distribution (after pnpm run build)
 ```
 
 ## Contributing

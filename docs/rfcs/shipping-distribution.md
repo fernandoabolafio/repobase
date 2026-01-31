@@ -61,13 +61,13 @@ Bundle everything into one `repobase` package published to npm.
 }
 ```
 
-### Option B: Bun Compile (Binary)
+### Option B: Binary Compile (Future)
 
-Use `bun build --compile` to create standalone executables.
+Use a Node-based packager to create standalone executables.
 
 **Pros:**
 
-- No runtime dependency (no Node/Bun needed)
+- No runtime dependency (no Node needed)
 - Fastest startup time
 - Single binary distribution
 
@@ -97,7 +97,7 @@ Distribute via Homebrew tap for macOS users.
 
 - Native macOS experience
 - Automatic updates via `brew upgrade`
-- Can depend on system bun/node
+- Can depend on system node
 
 **Cons:**
 
@@ -153,7 +153,7 @@ Create a build script that:
 
 ```bash
 # scripts/build.sh
-bun run tsc --build
+pnpm run build
 # Bundle engine, tui, mcp-server into dist/
 ```
 
@@ -165,14 +165,11 @@ bun run tsc --build
 
 ## Open Questions
 
-1. Should we use `bun` or `node` as the runtime requirement?
-   - bun: faster, but less installed
-   - node: more universal
+1. Confirm the minimum Node.js version requirement (>=20).
 2. How to handle native dependencies (@lancedb/lancedb)?
    - May need platform-specific packages or prebuild binaries
 
 ## References
 
 - [MCP Server Distribution](https://modelcontextprotocol.io/docs/servers)
-- [Bun Compile](https://bun.sh/docs/bundler/executables)
 - [npm bin scripts](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#bin)

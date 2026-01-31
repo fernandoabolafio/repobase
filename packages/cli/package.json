@@ -8,13 +8,17 @@
   "main": "src/main.ts",
   "types": "src/main.ts",
   "scripts": {
-    "start": "bun run src/main.ts",
-    "repobase": "bun run src/main.ts"
+    "start": "tsx src/main.ts",
+    "repobase": "tsx src/main.ts"
   },
   "dependencies": {
     "@effect/cli": "^0.59.0",
     "@effect/platform": "^0.93.6",
+    "@effect/platform-node": "^0.103.0",
     "@repobase/engine": "workspace:*",
     "effect": "^3.19.9"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
   }
 }

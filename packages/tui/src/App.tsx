@@ -1,6 +1,7 @@
 import { useKeyboard } from "@opentui/react"
 import type { RepoConfig, SearchMode, SearchResult, AddRepoProgress } from "@repobase/engine"
 import { initialProgress } from "@repobase/engine"
+import { spawn } from "node:child_process"
 import { useCallback, useState } from "react"
 import { Header, RepoList, StatusBar, AddRepoModal, SearchModal, SearchResults, ProgressModal, ConfirmDialog } from "./components/index.js"
 import { colors } from "./theme/index.js"
@@ -19,6 +20,29 @@ interface AppProps {
   onQuit: () => void
   cloudConfigured?: boolean
 }
+
+const runClipboardCommand = (
+  command: string,
+  args: string[],
+  input: string
+): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const proc = spawn(command, args, {
+      stdio: ["pipe", "ignore", "ignore"]
+    })
+
+    proc.once("error", reject)
+    proc.once("exit", (code) => {
+      if (code === 0) {
+        resolve()
+      } else {
+        reject(new Error(`Clipboard command failed: ${command}`))
+      }
+    })
+
+    proc.stdin?.write(input)
+    proc.stdin?.end()
+  })
 
 export const App = ({
   initialRepos,
@@ -223,34 +247,14 @@ export const App = ({
         throw new Error("Unsupported platform for clipboard")
       }
       
-      const proc = Bun.spawn([command, ...args], {
-        stdin: "pipe",
-        stdout: "pipe",
-        stderr: "pipe",
-      })
-      
-      await proc.stdin.write(mcpConfig)
-      proc.stdin.end()
-      
-      await proc.exited
-      
-      if (proc.exitCode !== 0) {
+      try {
+        await runClipboardCommand(command, args, mcpConfig)
+      } catch (error) {
         // Try xsel on Linux if xclip failed
-        if (platform === "linux") {
-          const proc2 = Bun.spawn(["xsel", "--clipboard", "--input"], {
-            stdin: "pipe",
-            stdout: "pipe",
-            stderr: "pipe",
-          })
-          await proc2.stdin.write(mcpConfig)
-          proc2.stdin.end()
-          await proc2.exited
-          
-          if (proc2.exitCode !== 0) {
-            throw new Error("Failed to copy to clipboard")
-          }
+        if (platform === "linux" && command === "xclip") {
+          await runClipboardCommand("xsel", ["--clipboard", "--input"], mcpConfig)
         } else {
-          throw new Error("Failed to copy to clipboard")
+          throw error
         }
       }
       

@@ -3,7 +3,8 @@ import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   resolve: {
-    // Bun may install peer deps nested under the dependent package, which can cause
+    // Some package managers may install peer deps nested under the dependent package,
+    // which can cause
     // `@effect/vitest` to import a *different* Vitest instance than the runner.
     // Forcing a single Vitest instance fixes "Vitest failed to access its internal state"
     // and the resulting "No test suite found" failures.

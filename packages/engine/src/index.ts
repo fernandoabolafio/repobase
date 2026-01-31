@@ -83,9 +83,9 @@ export { layer as IndexerLayer } from "./services/Indexer.js"
 export { layer as RepobaseEngineLayer } from "./services/RepobaseEngine.js"
 export { layer as CloudSyncLayer } from "./services/CloudSync.js"
 
-// Layer composition for Bun
+// Layer composition for Node
 import { Layer } from "effect"
-import { BunFileSystem, BunCommandExecutor } from "@effect/platform-bun"
+import { NodeFileSystem, NodeCommandExecutor } from "@effect/platform-node"
 import { layer as GitClientLayer } from "./services/GitClient.js"
 import { layer as RepoStoreLayer } from "./services/RepoStore.js"
 import { layer as IndexerLayer } from "./services/Indexer.js"
@@ -93,30 +93,30 @@ import { layer as RepobaseEngineLayer } from "./services/RepobaseEngine.js"
 import { layer as CloudSyncLayer } from "./services/CloudSync.js"
 
 /**
- * Platform dependencies for Bun
+ * Platform dependencies for Node
  */
 export const PlatformLive = Layer.mergeAll(
-  BunFileSystem.layer,
-  BunCommandExecutor.layer
+  NodeFileSystem.layer,
+  NodeCommandExecutor.layer
 )
 
 /**
- * GitClient layer with Bun platform
+ * GitClient layer with Node platform
  */
 export const GitClientLive = GitClientLayer.pipe(Layer.provide(PlatformLive))
 
 /**
- * RepoStore layer with Bun platform
+ * RepoStore layer with Node platform
  */
 export const RepoStoreLive = RepoStoreLayer.pipe(Layer.provide(PlatformLive))
 
 /**
- * Indexer layer with Bun platform
+ * Indexer layer with Node platform
  */
 export const IndexerLive = IndexerLayer.pipe(Layer.provide(PlatformLive))
 
 /**
- * CloudSync layer with Bun platform and RepoStore
+ * CloudSync layer with Node platform and RepoStore
  */
 export const CloudSyncLive = CloudSyncLayer.pipe(
   Layer.provide(Layer.mergeAll(RepoStoreLayer, PlatformLive))

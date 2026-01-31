@@ -7,7 +7,7 @@
  */
 import { FileSystem, PlatformLogger } from "@effect/platform"
 import type * as PlatformError from "@effect/platform/Error"
-import { BunFileSystem } from "@effect/platform-bun"
+import { NodeFileSystem } from "@effect/platform-node"
 import { Effect, Layer, Logger, LogLevel } from "effect"
 import * as path from "node:path"
 import * as os from "node:os"
@@ -69,7 +69,7 @@ export const fileLoggerLayer = (
 
   // Replace the default logger with our file logger
   const loggerLayer = Logger.replaceScoped(Logger.defaultLogger, fileLogger).pipe(
-    Layer.provide(BunFileSystem.layer)
+    Layer.provide(NodeFileSystem.layer)
   )
 
   // Apply minimum log level
@@ -107,7 +107,7 @@ export const addFileLoggerLayer = (
   })
 
   return Logger.addScoped(fileLogger).pipe(
-    Layer.provide(BunFileSystem.layer)
+    Layer.provide(NodeFileSystem.layer)
   )
 }
 
